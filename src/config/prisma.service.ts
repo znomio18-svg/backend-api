@@ -24,6 +24,9 @@ export class PrismaService
       10,
     );
 
+    const databaseUrl = configService.get<string>('DATABASE_URL') || '';
+    const separator = databaseUrl.includes('?') ? '&' : '?';
+
     super({
       log: [
         { emit: 'event', level: 'warn' },
@@ -31,7 +34,7 @@ export class PrismaService
       ],
       datasources: {
         db: {
-          url: `${configService.get<string>('DATABASE_URL')}&connection_limit=${connectionLimit}&pool_timeout=${poolTimeout}`,
+          url: `${databaseUrl}${separator}connection_limit=${connectionLimit}&pool_timeout=${poolTimeout}`,
         },
       },
     });
