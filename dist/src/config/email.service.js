@@ -44,8 +44,8 @@ let EmailService = EmailService_1 = class EmailService {
             return false;
         }
         try {
-            const fromEmail = this.configService.get('SMTP_FROM_EMAIL', 'noreply@ZNom.mn');
-            const fromName = this.configService.get('SMTP_FROM_NAME', 'ZNom Movies');
+            const fromEmail = this.configService.get('SMTP_FROM_EMAIL', 'noreply@1MinDrama.mn');
+            const fromName = this.configService.get('SMTP_FROM_NAME', '1MinDrama Movies');
             await this.transporter.sendMail({
                 from: `"${fromName}" <${fromEmail}>`,
                 to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
@@ -73,7 +73,7 @@ let EmailService = EmailService_1 = class EmailService {
             subject: `Эрх амжилттай идэвхжлээ - ${planName}`,
             html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #E91E63;">ZNom Movies</h2>
+          <h2 style="color: #E91E63;">1MinDrama Movies</h2>
           <p>Сайн байна уу, ${userName}!</p>
           <p>Таны эрх амжилттай идэвхжлээ.</p>
           <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -82,12 +82,12 @@ let EmailService = EmailService_1 = class EmailService {
             <p><strong>Дуусах хугацаа:</strong> ${formattedDate}</p>
           </div>
           <p>Та одоо бүх кино үзэх боломжтой боллоо!</p>
-          <a href="${this.configService.get('FRONTEND_URL', 'https://ZNom.mn')}/movies"
+          <a href="${this.configService.get('FRONTEND_URL', 'https://1MinDrama.mn')}/movies"
              style="display: inline-block; background: #E91E63; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
             Кино үзэх
           </a>
           <p style="margin-top: 30px; color: #666; font-size: 12px;">
-            ZNom Movies - Монголын шилдэг кино платформ
+            1MinDrama Movies - Монголын шилдэг кино платформ
           </p>
         </div>
       `,
@@ -110,7 +110,7 @@ let EmailService = EmailService_1 = class EmailService {
             <p><strong>Төлбөрийн ID:</strong> ${paymentId}</p>
           </div>
           <p>Банкны хуулгаас шалгаад төлбөрийг баталгаажуулна уу.</p>
-          <a href="${this.configService.get('ADMIN_URL', 'https://admin.ZNom.mn')}/payments/${paymentId}"
+          <a href="${this.configService.get('ADMIN_URL', 'https://admin.1MinDrama.mn')}/payments/${paymentId}"
              style="display: inline-block; background: #E91E63; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
             Төлбөр шалгах
           </a>
@@ -124,16 +124,16 @@ let EmailService = EmailService_1 = class EmailService {
             subject: `Эрхийн хугацаа дуусах гэж байна - ${daysRemaining} өдөр үлдлээ`,
             html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #E91E63;">ZNom Movies</h2>
+          <h2 style="color: #E91E63;">1MinDrama Movies</h2>
           <p>Сайн байна уу, ${userName}!</p>
           <p>Таны <strong>${planName}</strong> эрх ${daysRemaining} өдрийн дараа дуусах гэж байна.</p>
           <p>Эрхээ сунгаад тасралтгүй кино үзээрэй!</p>
-          <a href="${this.configService.get('FRONTEND_URL', 'https://ZNom.mn')}/subscribe"
+          <a href="${this.configService.get('FRONTEND_URL', 'https://1MinDrama.mn')}/subscribe"
              style="display: inline-block; background: #E91E63; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
             Эрх сунгах
           </a>
           <p style="margin-top: 30px; color: #666; font-size: 12px;">
-            ZNom Movies - Монголын шилдэг кино платформ
+            1MinDrama Movies - Монголын шилдэг кино платформ
           </p>
         </div>
       `,

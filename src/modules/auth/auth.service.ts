@@ -48,7 +48,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const adminEmail = adminIdentifier === 'admin' ? 'admin@ZNom.mn' : 'admin2@ZNom.mn';
+    const adminEmail = adminIdentifier === 'admin' ? 'admin@1MinDrama.mn' : 'admin2@1MinDrama.mn';
     let adminUser = await this.prisma.user.findFirst({
       where: { facebookId: adminIdentifier, role: UserRole.ADMIN },
     });

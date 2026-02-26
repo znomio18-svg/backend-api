@@ -26,7 +26,7 @@ async function bootstrap() {
     }));
     app.useGlobalInterceptors(new timeout_interceptor_1.TimeoutInterceptor(30000));
     const config = new swagger_1.DocumentBuilder()
-        .setTitle('ZNom Movie API')
+        .setTitle('1MinDrama Movie API')
         .setDescription('Movie streaming platform API')
         .setVersion('1.0')
         .addBearerAuth()

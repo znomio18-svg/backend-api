@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ZNom is a movie streaming platform backend API built with NestJS 10, Prisma ORM (PostgreSQL), and Redis (ioredis). It serves a Mongolian movie marketplace with subscription-based access. Currency is MNT (Mongolian Tugrik).
+1MinDrama is a movie streaming platform backend API built with NestJS 10, Prisma ORM (PostgreSQL), and Redis (ioredis). It serves a Mongolian movie marketplace with subscription-based access. Currency is MNT (Mongolian Tugrik).
 
 ## Common Commands
 

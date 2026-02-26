@@ -35,7 +35,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TimeoutInterceptor(30000));
 
   const config = new DocumentBuilder()
-    .setTitle('ZNom Movie API')
+    .setTitle('1MinDrama Movie API')
     .setDescription('Movie streaming platform API')
     .setVersion('1.0')
     .addBearerAuth()

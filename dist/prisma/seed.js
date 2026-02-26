@@ -9,7 +9,7 @@ async function main() {
         create: {
             facebookId: 'admin-seed',
             name: 'Admin User',
-            email: 'admin@ZNom.mn',
+            email: 'admin@1MinDrama.mn',
             role: client_1.UserRole.ADMIN,
         },
     });
