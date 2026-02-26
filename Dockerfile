@@ -13,10 +13,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Generate Prisma Client
-RUN npx prisma generate
-
-# Build application
+# Build application (includes prisma generate && nest build)
 RUN npm run build
 
 # Production stage
