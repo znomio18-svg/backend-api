@@ -1,0 +1,113 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: movie-backend-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-moviedb_root_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-moviedb}
+      MYSQL_USER: ${MYSQL_USER:-moviedb}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-moviedb_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - movie-backend-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: movie-backend-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - movie-backend-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: movie-backend-api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: mysql://${MYSQL_USER:-moviedb}:${MYSQL_PASSWORD:-moviedb_password}@mysql:3306/${MYSQL_DATABASE:-moviedb}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      # Add other environment variables from .env
+    env_file:
+      - .env
+    ports:
+      - "${API_PORT:-4000}:4000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - movie-backend-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:4000/api/v1/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: movie-backend-worker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://${MYSQL_USER:-moviedb}:${MYSQL_PASSWORD:-moviedb_password}@mysql:3306/${MYSQL_DATABASE:-moviedb}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      # Add other environment variables from .env
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - movie-backend-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  movie-backend-network:
+    driver: bridge

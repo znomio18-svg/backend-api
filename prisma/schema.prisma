@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  EXPIRED
+}
+
+enum PaymentMethod {
+  QPAY
+  BANK_TRANSFER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum ReconcileSource {
+  WEBHOOK
+  CRON
+  POLLING
+  MANUAL
+}
+
+model User {
+  id            String    @id @default(cuid())
+  facebookId    String    @unique
+  email         String?   @unique
+  name          String
+  avatar        String?
+  password      String?   // Hashed password for admin users
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  payments      Payment[]
+  subscriptions Subscription[]
+
+  @@map("users")
+}
+
+model Movie {
+  id              String    @id @default(cuid())
+  title           String
+  description     String
+  thumbnailUrl    String
+  trailerVideoId  String?   // Bunny CDN trailer library video ID
+  videoId         String    // Bunny CDN movie library video ID
+  duration        Int       // in seconds
+  releaseYear     Int
+  rating          Float     @default(0)
+  viewCount       Int       @default(0)
+  isFeatured      Boolean   @default(false)
+  isPublished     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([title])
+  @@index([isFeatured])
+  @@index([isPublished])
+  @@map("movies")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  subscriptionPlanId String
+  amount          Int           // in MNT
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   PaymentMethod @default(QPAY)
+
+  // QPay fields
+  qpayInvoiceId   String?       @unique
+  qpayQrCode      String?       @db.Text
+  qpayQrImage     String?       @db.Text
+  qpayDeeplinks   Json?         // Store bank deeplinks
+  qpayPaymentId   String?
+  qpayRawPayload  Json?         // Store raw webhook/response payload
+
+  // Bank transfer fields
+  bankAccountId   String?
+  transferRef     String?       @unique // Unique reference for bank transfers (guilgeenii utga)
+  userNotifiedAt  DateTime?     // When user clicked "I have paid"
+
+  invoiceCode     String        @unique // Our internal invoice code
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Reconciliation tracking
+  reconcileAttempts  Int              @default(0)
+  lastReconcileAt    DateTime?
+  nextReconcileAt    DateTime?        // For exponential backoff scheduling
+  reconcileSource    ReconcileSource?
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionPlan SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [id])
+  bankAccount     BankAccount?  @relation(fields: [bankAccountId], references: [id])
+
+  @@index([status])
+  @@index([qpayInvoiceId])
+  @@index([createdAt])
+  @@index([paymentMethod])
+  @@index([transferRef])
+  @@index([status, nextReconcileAt]) // For efficient backoff queries
+  @@map("payments")
+}
+
+model QPayToken {
+  id            String    @id @default(cuid())
+  accessToken   String    @db.Text
+  refreshToken  String    @db.Text
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("qpay_tokens")
+}
+
+model SubscriptionPlan {
+  id            String    @id @default(cuid())
+  name          String    // e.g., "Monthly", "Yearly"
+  nameEn        String?   // English name
+  description   String?
+  price         Int       // in MNT
+  durationDays  Int       // 30 for monthly, 365 for yearly
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id            String             @id @default(cuid())
+  userId        String
+  planId        String
+  startDate     DateTime           @default(now())
+  endDate       DateTime           // When subscription expires
+  status        SubscriptionStatus @default(ACTIVE)
+  autoRenew     Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          SubscriptionPlan   @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+model BankAccount {
+  id            String    @id @default(cuid())
+  bankName      String    // e.g., "Khan Bank", "Golomt Bank"
+  bankCode      String    // e.g., "KHAN", "GOLOMT"
+  accountNumber String
+  accountHolder String    // Account holder name
+  description   String?   // Optional description
+  isActive      Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  payments      Payment[]
+
+  @@map("bank_accounts")
+}
+
+model AdminSettings {
+  id            String    @id @default(cuid())
+  key           String    @unique // e.g., "notification_email", "bank_transfer_instructions"
+  value         String    @db.Text
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("admin_settings")
+}
