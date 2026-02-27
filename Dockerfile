@@ -33,16 +33,17 @@ RUN npm ci --omit=dev
 
 # Copy Prisma CLI from builder (prisma is a devDependency, not installed by --omit=dev)
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
-# Generate Prisma client fresh in production image to avoid builder/runtime mismatch
-RUN npx prisma generate
+# Generate Prisma client fresh in production image
+RUN node ./node_modules/prisma/build/index.js generate
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+
 # Expose port
 EXPOSE 4000
 
-# Run migrations then exec into node (exec replaces shell so node receives signals directly)
-CMD ["sh", "-c", "echo 'Running migrations...' && npx prisma migrate deploy && echo 'Migrations complete.' && exec node dist/src/main.js"]
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
