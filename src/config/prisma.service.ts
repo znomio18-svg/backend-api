@@ -15,28 +15,11 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   constructor(private configService: ConfigService) {
-    const connectionLimit = parseInt(
-      configService.get<string>('DATABASE_POOL_SIZE') || '10',
-      10,
-    );
-    const poolTimeout = parseInt(
-      configService.get<string>('DATABASE_POOL_TIMEOUT') || '10',
-      10,
-    );
-
-    const databaseUrl = configService.get<string>('DATABASE_URL') || '';
-    const separator = databaseUrl.includes('?') ? '&' : '?';
-
     super({
       log: [
         { emit: 'event', level: 'warn' },
         { emit: 'event', level: 'error' },
       ],
-      datasources: {
-        db: {
-          url: `${databaseUrl}${separator}connection_limit=${connectionLimit}&pool_timeout=${poolTimeout}`,
-        },
-      },
     });
   }
 
