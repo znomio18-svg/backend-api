@@ -31,10 +31,12 @@ COPY prisma ./prisma/
 # Install production dependencies only
 RUN npm ci --omit=dev
 
-# Copy built application and Prisma Client
+# Copy built application, Prisma Client, and Prisma CLI from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 # Expose port
 EXPOSE 4000
