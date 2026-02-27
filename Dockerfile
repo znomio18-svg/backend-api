@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install ALL dependencies (need prisma CLI for generate)
+# Install ALL dependencies
 RUN npm ci
 
 # Copy source code
@@ -15,12 +15,6 @@ COPY . .
 
 # Build application (includes prisma generate && nest build)
 RUN npm run build
-
-# Prune dev dependencies but keep prisma CLI (needed for migrate deploy at runtime)
-RUN npm prune --omit=dev && npm install prisma@$(node -p "require('./node_modules/@prisma/client/package.json').version")
-
-# Re-generate Prisma client after prune to ensure client matches runtime @prisma/client
-RUN npx prisma generate
 
 # Production stage
 FROM node:20-alpine
@@ -30,7 +24,7 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy everything we need from builder (single source of truth)
+# Copy everything from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
