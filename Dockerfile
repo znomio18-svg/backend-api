@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
+# Install ALL dependencies (need prisma CLI for generate)
 RUN npm ci
 
 # Copy source code
@@ -15,6 +15,12 @@ COPY . .
 
 # Build application (includes prisma generate && nest build)
 RUN npm run build
+
+# Prune dev dependencies but keep prisma CLI (needed for migrate deploy at runtime)
+RUN npm prune --omit=dev && npm install prisma@$(node -p "require('./node_modules/@prisma/client/package.json').version")
+
+# Re-generate Prisma client after prune to ensure client matches runtime @prisma/client
+RUN npx prisma generate
 
 # Production stage
 FROM node:20-alpine
@@ -24,23 +30,11 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install production dependencies only
-RUN npm ci --omit=dev
-
-# Copy Prisma CLI from builder (prisma is a devDependency, not installed by --omit=dev)
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-
-# Generate Prisma client fresh in production image
-RUN node ./node_modules/prisma/build/index.js generate
-
-# Copy built application
+# Copy everything we need from builder (single source of truth)
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-
-# Copy entrypoint script
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 
 # Expose port
