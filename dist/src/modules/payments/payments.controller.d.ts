@@ -3,7 +3,8 @@ import { PaymentsService } from './payments.service';
 import { QpayService } from './qpay.service';
 import { User, PaymentMethod } from '@prisma/client';
 declare class CreatePaymentDto {
-    subscriptionPlanId: string;
+    subscriptionPlanId?: string;
+    movieId?: string;
     paymentMethod?: PaymentMethod;
     bankAccountId?: string;
 }
@@ -23,9 +24,10 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -69,9 +71,10 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -94,9 +97,10 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -119,9 +123,10 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -144,9 +149,10 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;

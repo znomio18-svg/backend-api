@@ -14,6 +14,7 @@ export interface CreateMovieDto {
   releaseYear: number;
   isFeatured?: boolean;
   isPublished?: boolean;
+  price?: number | null;
 }
 
 export interface UpdateMovieDto extends Partial<CreateMovieDto> {}
@@ -201,6 +202,24 @@ export class MoviesService {
       draftMovies: totalMovies - publishedMovies,
       totalViews: totalViews._sum.viewCount || 0,
     };
+  }
+
+  async hasUserPurchasedMovie(userId: string, movieId: string): Promise<boolean> {
+    const purchase = await this.prisma.moviePurchase.findUnique({
+      where: {
+        userId_movieId: { userId, movieId },
+      },
+    });
+    return !!purchase;
+  }
+
+  async getUserPurchasedMovies(userId: string): Promise<Movie[]> {
+    const purchases = await this.prisma.moviePurchase.findMany({
+      where: { userId },
+      include: { movie: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    return purchases.map((p) => this.resolveMovieUrls(p.movie));
   }
 
   private resolveMovieUrls<T extends Movie>(movie: T): T {

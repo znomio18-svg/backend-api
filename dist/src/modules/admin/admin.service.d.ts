@@ -11,6 +11,8 @@ export interface DashboardStats {
     totalPayments: number;
     recentPayments: number;
     activeSubscriptions: number;
+    totalMoviePurchases: number;
+    moviePurchaseRevenue: number;
 }
 export declare class AdminService {
     private prisma;
@@ -25,7 +27,7 @@ export declare class AdminService {
         }[];
     }>;
     getReportData(type: 'today' | 'week' | 'month' | 'custom', startDate?: Date, endDate?: Date): Promise<{
-        period: "month" | "today" | "week" | "custom";
+        period: "today" | "week" | "month" | "custom";
         startDate: Date | undefined;
         endDate: Date | undefined;
         stats: DashboardStats;
@@ -46,5 +48,36 @@ export declare class AdminService {
     }>;
     private getNewUsersCount;
     private getPaymentsByStatus;
+    getMoviePurchases(params: {
+        skip?: number;
+        take?: number;
+        movieId?: string;
+    }): Promise<{
+        purchases: ({
+            user: {
+                id: string;
+                email: string | null;
+                name: string;
+            };
+            movie: {
+                id: string;
+                title: string;
+                price: number | null;
+            };
+            payment: {
+                id: string;
+                amount: number;
+                paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+                paidAt: Date | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            userId: string;
+            movieId: string;
+            paymentId: string;
+        })[];
+        total: number;
+    }>;
     private buildDateFilter;
 }

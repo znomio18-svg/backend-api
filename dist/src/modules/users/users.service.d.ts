@@ -23,8 +23,8 @@ export declare class UsersService {
                 createdAt: Date;
                 updatedAt: Date;
                 description: string | null;
-                nameEn: string | null;
                 price: number;
+                nameEn: string | null;
                 durationDays: number;
                 isActive: boolean;
             };
@@ -33,10 +33,10 @@ export declare class UsersService {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            planId: string;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             startDate: Date;
             endDate: Date;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            planId: string;
             autoRenew: boolean;
         }) | null;
     }>;

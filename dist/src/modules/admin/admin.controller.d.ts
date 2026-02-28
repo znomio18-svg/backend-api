@@ -23,7 +23,7 @@ export declare class AdminController {
     constructor(adminService: AdminService, moviesService: MoviesService, paymentsService: PaymentsService, usersService: UsersService, bankAccountsService: BankAccountsService, adminSettingsService: AdminSettingsService, subscriptionsService: SubscriptionsService, authService: AuthService);
     getDashboard(): Promise<import("./admin.service").DashboardStats>;
     getReports(type: 'today' | 'week' | 'month' | 'custom', startDate?: string, endDate?: string): Promise<{
-        period: "month" | "today" | "week" | "custom";
+        period: "today" | "week" | "month" | "custom";
         startDate: Date | undefined;
         endDate: Date | undefined;
         stats: import("./admin.service").DashboardStats;
@@ -66,6 +66,7 @@ export declare class AdminController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
+            price: number | null;
         }[];
         pagination: {
             page: number;
@@ -98,6 +99,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
     }>;
     createMovie(dto: CreateMovieDto): Promise<{
         id: string;
@@ -114,6 +116,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
     }>;
     updateMovie(id: string, dto: UpdateMovieDto): Promise<{
         id: string;
@@ -130,6 +133,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
     }>;
     toggleFeatured(id: string, isFeatured: boolean): Promise<{
         id: string;
@@ -146,6 +150,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
     }>;
     deleteMovie(id: string): Promise<{
         success: boolean;
@@ -172,10 +177,14 @@ export declare class AdminController {
                 email: string | null;
                 name: string;
             };
+            movie: {
+                id: string;
+                title: string;
+            } | null;
             subscriptionPlan: {
                 id: string;
                 name: string;
-            };
+            } | null;
             bankAccount: {
                 id: string;
                 bankName: string;
@@ -186,9 +195,10 @@ export declare class AdminController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.PaymentStatus;
-            subscriptionPlanId: string;
+            subscriptionPlanId: string | null;
+            movieId: string | null;
             amount: number;
+            status: import(".prisma/client").$Enums.PaymentStatus;
             paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
             qpayQrCode: string | null;
@@ -213,9 +223,10 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -238,9 +249,10 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        subscriptionPlanId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -338,8 +350,8 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        nameEn: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }[]>;
@@ -349,8 +361,8 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        nameEn: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -360,8 +372,8 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        nameEn: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -371,13 +383,40 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        nameEn: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
     deleteSubscriptionPlan(id: string): Promise<{
         success: boolean;
+    }>;
+    getMoviePurchases(page?: number, limit?: number, movieId?: string): Promise<{
+        purchases: ({
+            user: {
+                id: string;
+                email: string | null;
+                name: string;
+            };
+            movie: {
+                id: string;
+                title: string;
+                price: number | null;
+            };
+            payment: {
+                id: string;
+                amount: number;
+                paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+                paidAt: Date | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            userId: string;
+            movieId: string;
+            paymentId: string;
+        })[];
+        total: number;
     }>;
     getSubscriptionStats(): Promise<{
         totalSubscriptions: number;

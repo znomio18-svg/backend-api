@@ -29,7 +29,19 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
         this.logger = new common_1.Logger(PaymentsService_1.name);
     }
     async createPayment(userId, options) {
-        const { subscriptionPlanId, paymentMethod = client_1.PaymentMethod.QPAY, bankAccountId } = options;
+        const { subscriptionPlanId, movieId, paymentMethod = client_1.PaymentMethod.QPAY, bankAccountId } = options;
+        if (subscriptionPlanId && movieId) {
+            throw new common_1.BadRequestException('Provide either subscriptionPlanId or movieId, not both');
+        }
+        if (!subscriptionPlanId && !movieId) {
+            throw new common_1.BadRequestException('Either subscriptionPlanId or movieId is required');
+        }
+        if (movieId) {
+            return this.createMoviePayment(userId, movieId, paymentMethod, bankAccountId);
+        }
+        return this.createSubscriptionPayment(userId, subscriptionPlanId, paymentMethod, bankAccountId);
+    }
+    async createSubscriptionPayment(userId, subscriptionPlanId, paymentMethod, bankAccountId) {
         const plan = await this.prisma.subscriptionPlan.findUnique({
             where: { id: subscriptionPlanId },
         });
@@ -110,6 +122,88 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             include: { subscriptionPlan: true },
         });
     }
+    async createMoviePayment(userId, movieId, paymentMethod, bankAccountId) {
+        const movie = await this.prisma.movie.findUnique({
+            where: { id: movieId },
+        });
+        if (!movie) {
+            throw new common_1.NotFoundException('Movie not found');
+        }
+        if (!movie.isPublished) {
+            throw new common_1.BadRequestException('Movie is not available');
+        }
+        if (!movie.price || movie.price <= 0) {
+            throw new common_1.BadRequestException('This movie is not available for individual purchase');
+        }
+        const existingPurchase = await this.prisma.moviePurchase.findUnique({
+            where: {
+                userId_movieId: { userId, movieId },
+            },
+        });
+        if (existingPurchase) {
+            throw new common_1.BadRequestException('You have already purchased this movie');
+        }
+        const pendingPayment = await this.prisma.payment.findFirst({
+            where: {
+                userId,
+                movieId,
+                paymentMethod,
+                status: client_1.PaymentStatus.PENDING,
+                createdAt: { gt: new Date(Date.now() - 30 * 60 * 1000) },
+            },
+            include: { movie: true, bankAccount: true },
+        });
+        if (pendingPayment) {
+            return pendingPayment;
+        }
+        const invoiceCode = `INV-${(0, uuid_1.v4)().slice(0, 8).toUpperCase()}`;
+        const amount = movie.price;
+        const description = `${movie.title} - Кино худалдан авалт`;
+        if (paymentMethod === client_1.PaymentMethod.BANK_TRANSFER) {
+            if (bankAccountId) {
+                const bankAccount = await this.prisma.bankAccount.findUnique({
+                    where: { id: bankAccountId },
+                });
+                if (!bankAccount || !bankAccount.isActive) {
+                    throw new common_1.BadRequestException('Invalid or inactive bank account');
+                }
+            }
+            const transferRef = this.generateTransferReference();
+            return this.prisma.payment.create({
+                data: {
+                    userId,
+                    movieId,
+                    amount,
+                    invoiceCode,
+                    paymentMethod: client_1.PaymentMethod.BANK_TRANSFER,
+                    bankAccountId,
+                    transferRef,
+                },
+                include: { movie: true, bankAccount: true },
+            });
+        }
+        const callbackUrl = `${this.configService.get('QPAY_CALLBACK_URL')}?invoice=${invoiceCode}`;
+        const qpayInvoice = await this.qpayService.createInvoice({
+            invoiceCode,
+            amount,
+            description,
+            callbackUrl,
+        });
+        return this.prisma.payment.create({
+            data: {
+                userId,
+                movieId,
+                amount,
+                invoiceCode,
+                paymentMethod: client_1.PaymentMethod.QPAY,
+                qpayInvoiceId: qpayInvoice.invoice_id,
+                qpayQrCode: qpayInvoice.qr_text,
+                qpayQrImage: qpayInvoice.qr_image,
+                qpayDeeplinks: qpayInvoice.urls,
+            },
+            include: { movie: true },
+        });
+    }
     generateTransferReference() {
         const timestamp = Date.now().toString(36).toUpperCase();
         const random = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -118,7 +212,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
     async getPayment(paymentId) {
         const payment = await this.prisma.payment.findUnique({
             where: { id: paymentId },
-            include: { subscriptionPlan: true },
+            include: { subscriptionPlan: true, movie: true },
         });
         if (!payment) {
             throw new common_1.NotFoundException('Payment not found');
@@ -128,7 +222,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
     async getPaymentByInvoiceCode(invoiceCode) {
         return this.prisma.payment.findUnique({
             where: { invoiceCode },
-            include: { subscriptionPlan: true, user: true },
+            include: { subscriptionPlan: true, movie: true, user: true },
         });
     }
     async checkAndProcessPayment(paymentId) {
@@ -236,7 +330,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
                         reconcileAttempts: payment.reconcileAttempts + 1,
                     },
                 });
-                await this.createSubscriptionEntitlement(tx, payment);
+                await this.createEntitlement(tx, payment);
                 this.logger.log(`Payment ${payment.id} marked as PAID via ${source} (QPay ID: ${paidRow.payment_id})`);
                 this.sendPaymentConfirmationEmail(payment).catch((e) => this.logger.error('Failed to send confirmation email:', e));
                 return {
@@ -347,6 +441,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
                 include: {
                     user: { select: { id: true, name: true, email: true } },
                     subscriptionPlan: { select: { id: true, name: true } },
+                    movie: { select: { id: true, title: true } },
                     bankAccount: { select: { id: true, bankName: true, accountNumber: true } },
                 },
             }),
@@ -357,7 +452,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
     async notifyBankTransferPaid(paymentId) {
         const payment = await this.prisma.payment.findUnique({
             where: { id: paymentId },
-            include: { user: true, subscriptionPlan: true },
+            include: { user: true, subscriptionPlan: true, movie: true },
         });
         if (!payment) {
             throw new common_1.NotFoundException('Payment not found');
@@ -371,11 +466,11 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
         const updatedPayment = await this.prisma.payment.update({
             where: { id: paymentId },
             data: { userNotifiedAt: new Date() },
-            include: { user: true, subscriptionPlan: true },
+            include: { user: true, subscriptionPlan: true, movie: true },
         });
         const adminEmail = await this.getAdminNotificationEmail();
         if (adminEmail) {
-            const itemName = payment.subscriptionPlan?.name || 'Subscription';
+            const itemName = payment.movie?.title || payment.subscriptionPlan?.name || 'Subscription';
             this.emailService
                 .sendBankTransferNotificationToAdmin(adminEmail, payment.user.name, payment.user.email || '', itemName, payment.amount, payment.transferRef || '', payment.id)
                 .catch((e) => this.logger.error('Failed to send admin notification:', e));
@@ -407,7 +502,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
                 },
                 include: { user: true, subscriptionPlan: true },
             });
-            await this.createSubscriptionEntitlement(tx, payment);
+            await this.createEntitlement(tx, payment);
             this.logger.log(`Bank transfer payment ${paymentId} confirmed manually`);
             this.sendPaymentConfirmationEmail(payment).catch((e) => this.logger.error('Failed to send confirmation email:', e));
             return updatedPayment;
@@ -442,26 +537,47 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             orderBy: { sortOrder: 'asc' },
         });
     }
-    async createSubscriptionEntitlement(tx, payment) {
-        const plan = await tx.subscriptionPlan.findUnique({
-            where: { id: payment.subscriptionPlanId },
-        });
-        if (!plan) {
-            throw new Error(`Subscription plan not found: ${payment.subscriptionPlanId}`);
+    async createEntitlement(tx, payment) {
+        if (payment.movieId) {
+            try {
+                await tx.moviePurchase.create({
+                    data: {
+                        userId: payment.userId,
+                        movieId: payment.movieId,
+                        paymentId: payment.id,
+                    },
+                });
+                this.logger.log(`Movie purchase created for user ${payment.userId}, movie ${payment.movieId}`);
+            }
+            catch (error) {
+                if (error?.code === 'P2002') {
+                    this.logger.log(`Movie purchase already exists for user ${payment.userId}, movie ${payment.movieId}`);
+                    return;
+                }
+                throw error;
+            }
         }
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + plan.durationDays);
-        await tx.subscription.create({
-            data: {
-                userId: payment.userId,
-                planId: payment.subscriptionPlanId,
-                startDate,
-                endDate,
-                status: client_1.SubscriptionStatus.ACTIVE,
-            },
-        });
-        this.logger.log(`Subscription created for user ${payment.userId}, plan ${plan.name}, expires ${endDate}`);
+        else if (payment.subscriptionPlanId) {
+            const plan = await tx.subscriptionPlan.findUnique({
+                where: { id: payment.subscriptionPlanId },
+            });
+            if (!plan) {
+                throw new Error(`Subscription plan not found: ${payment.subscriptionPlanId}`);
+            }
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + plan.durationDays);
+            await tx.subscription.create({
+                data: {
+                    userId: payment.userId,
+                    planId: payment.subscriptionPlanId,
+                    startDate,
+                    endDate,
+                    status: client_1.SubscriptionStatus.ACTIVE,
+                },
+            });
+            this.logger.log(`Subscription created for user ${payment.userId}, plan ${plan.name}, expires ${endDate}`);
+        }
     }
     async sendPaymentConfirmationEmail(payment) {
         const user = await this.prisma.user.findUnique({
@@ -469,13 +585,23 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
         });
         if (!user?.email)
             return;
-        const plan = await this.prisma.subscriptionPlan.findUnique({
-            where: { id: payment.subscriptionPlanId },
-        });
-        if (plan) {
-            const endDate = new Date();
-            endDate.setDate(endDate.getDate() + plan.durationDays);
-            await this.emailService.sendSubscriptionConfirmation(user.email, user.name, plan.name, payment.amount, endDate);
+        if (payment.movieId) {
+            const movie = await this.prisma.movie.findUnique({
+                where: { id: payment.movieId },
+            });
+            if (movie) {
+                await this.emailService.sendMoviePurchaseConfirmation(user.email, user.name, movie.title, payment.amount);
+            }
+        }
+        else if (payment.subscriptionPlanId) {
+            const plan = await this.prisma.subscriptionPlan.findUnique({
+                where: { id: payment.subscriptionPlanId },
+            });
+            if (plan) {
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() + plan.durationDays);
+                await this.emailService.sendSubscriptionConfirmation(user.email, user.name, plan.name, payment.amount, endDate);
+            }
         }
     }
     async getAdminNotificationEmail() {

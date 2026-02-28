@@ -15,6 +15,8 @@ export interface DashboardStats {
   totalPayments: number;
   recentPayments: number;
   activeSubscriptions: number;
+  totalMoviePurchases: number;
+  moviePurchaseRevenue: number;
 }
 
 @Injectable()
@@ -32,6 +34,8 @@ export class AdminService {
       totalPayments,
       recentPayments,
       activeSubscriptions,
+      totalMoviePurchases,
+      moviePurchaseRevenueResult,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.movie.count(),
@@ -58,6 +62,15 @@ export class AdminService {
           endDate: { gt: new Date() },
         },
       }),
+      this.prisma.moviePurchase.count(),
+      this.prisma.payment.aggregate({
+        where: {
+          status: PaymentStatus.PAID,
+          movieId: { not: null },
+          ...dateFilter,
+        },
+        _sum: { amount: true },
+      }),
     ]);
 
     return {
@@ -68,6 +81,8 @@ export class AdminService {
       totalPayments,
       recentPayments,
       activeSubscriptions,
+      totalMoviePurchases,
+      moviePurchaseRevenue: moviePurchaseRevenueResult._sum.amount || 0,
     };
   }
 
@@ -184,6 +199,36 @@ export class AdminService {
       count: r._count.id,
       amount: r._sum.amount || 0,
     }));
+  }
+
+  async getMoviePurchases(params: {
+    skip?: number;
+    take?: number;
+    movieId?: string;
+  }) {
+    const { skip = 0, take = 20, movieId } = params;
+
+    const where: any = {};
+    if (movieId) {
+      where.movieId = movieId;
+    }
+
+    const [purchases, total] = await Promise.all([
+      this.prisma.moviePurchase.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          movie: { select: { id: true, title: true, price: true } },
+          payment: { select: { id: true, amount: true, paymentMethod: true, paidAt: true } },
+        },
+      }),
+      this.prisma.moviePurchase.count({ where }),
+    ]);
+
+    return { purchases, total };
   }
 
   private buildDateFilter(filter?: DateRangeFilter) {

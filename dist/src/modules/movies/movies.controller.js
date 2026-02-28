@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const movies_service_1 = require("./movies.service");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
+const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const subscription_guard_1 = require("../../common/guards/subscription.guard");
 let MoviesController = class MoviesController {
@@ -31,6 +32,9 @@ let MoviesController = class MoviesController {
     }
     async getFeatured() {
         return this.moviesService.getFeaturedMovies();
+    }
+    async getPurchasedMovies(user) {
+        return this.moviesService.getUserPurchasedMovies(user.id);
     }
     async findOne(id) {
         return this.moviesService.findOne(id);
@@ -70,6 +74,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], MoviesController.prototype, "getFeatured", null);
+__decorate([
+    (0, common_1.Get)('purchased'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get movies purchased by the current user' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], MoviesController.prototype, "getPurchasedMovies", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, public_decorator_1.Public)(),

@@ -147,6 +147,22 @@ let MoviesService = class MoviesService {
             totalViews: totalViews._sum.viewCount || 0,
         };
     }
+    async hasUserPurchasedMovie(userId, movieId) {
+        const purchase = await this.prisma.moviePurchase.findUnique({
+            where: {
+                userId_movieId: { userId, movieId },
+            },
+        });
+        return !!purchase;
+    }
+    async getUserPurchasedMovies(userId) {
+        const purchases = await this.prisma.moviePurchase.findMany({
+            where: { userId },
+            include: { movie: true },
+            orderBy: { createdAt: 'desc' },
+        });
+        return purchases.map((p) => this.resolveMovieUrls(p.movie));
+    }
     resolveMovieUrls(movie) {
         return {
             ...movie,

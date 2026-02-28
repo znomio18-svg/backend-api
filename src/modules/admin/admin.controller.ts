@@ -333,6 +333,26 @@ export class AdminController {
     return { success: true };
   }
 
+  // Movie Purchases
+  @Get('movie-purchases')
+  @ApiOperation({ summary: 'Get movie purchase history' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'movieId', required: false, type: String })
+  async getMoviePurchases(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('movieId') movieId?: string,
+  ) {
+    const skip = ((page || 1) - 1) * (limit || 20);
+
+    return this.adminService.getMoviePurchases({
+      skip,
+      take: limit || 20,
+      movieId: movieId || undefined,
+    });
+  }
+
   @Get('subscriptions/stats')
   @ApiOperation({ summary: 'Get subscription statistics' })
   async getSubscriptionStats() {

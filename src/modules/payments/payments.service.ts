@@ -29,7 +29,8 @@ export interface ReconcileResult {
 }
 
 export interface CreatePaymentDto {
-  subscriptionPlanId: string;
+  subscriptionPlanId?: string;
+  movieId?: string;
   paymentMethod?: PaymentMethod;
   bankAccountId?: string;
 }
@@ -49,8 +50,29 @@ export class PaymentsService {
     userId: string,
     options: CreatePaymentDto,
   ): Promise<Payment> {
-    const { subscriptionPlanId, paymentMethod = PaymentMethod.QPAY, bankAccountId } = options;
+    const { subscriptionPlanId, movieId, paymentMethod = PaymentMethod.QPAY, bankAccountId } = options;
 
+    // Validate exactly one of subscriptionPlanId or movieId is provided
+    if (subscriptionPlanId && movieId) {
+      throw new BadRequestException('Provide either subscriptionPlanId or movieId, not both');
+    }
+    if (!subscriptionPlanId && !movieId) {
+      throw new BadRequestException('Either subscriptionPlanId or movieId is required');
+    }
+
+    if (movieId) {
+      return this.createMoviePayment(userId, movieId, paymentMethod, bankAccountId);
+    }
+
+    return this.createSubscriptionPayment(userId, subscriptionPlanId!, paymentMethod, bankAccountId);
+  }
+
+  private async createSubscriptionPayment(
+    userId: string,
+    subscriptionPlanId: string,
+    paymentMethod: PaymentMethod,
+    bankAccountId?: string,
+  ): Promise<Payment> {
     const plan = await this.prisma.subscriptionPlan.findUnique({
       where: { id: subscriptionPlanId },
     });
@@ -148,6 +170,111 @@ export class PaymentsService {
     });
   }
 
+  private async createMoviePayment(
+    userId: string,
+    movieId: string,
+    paymentMethod: PaymentMethod,
+    bankAccountId?: string,
+  ): Promise<Payment> {
+    const movie = await this.prisma.movie.findUnique({
+      where: { id: movieId },
+    });
+
+    if (!movie) {
+      throw new NotFoundException('Movie not found');
+    }
+
+    if (!movie.isPublished) {
+      throw new BadRequestException('Movie is not available');
+    }
+
+    if (!movie.price || movie.price <= 0) {
+      throw new BadRequestException('This movie is not available for individual purchase');
+    }
+
+    // Check if user already purchased this movie
+    const existingPurchase = await this.prisma.moviePurchase.findUnique({
+      where: {
+        userId_movieId: { userId, movieId },
+      },
+    });
+
+    if (existingPurchase) {
+      throw new BadRequestException('You have already purchased this movie');
+    }
+
+    // Check for recent pending payment for the same movie
+    const pendingPayment = await this.prisma.payment.findFirst({
+      where: {
+        userId,
+        movieId,
+        paymentMethod,
+        status: PaymentStatus.PENDING,
+        createdAt: { gt: new Date(Date.now() - 30 * 60 * 1000) },
+      },
+      include: { movie: true, bankAccount: true },
+    });
+
+    if (pendingPayment) {
+      return pendingPayment;
+    }
+
+    const invoiceCode = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
+    const amount = movie.price;
+    const description = `${movie.title} - Кино худалдан авалт`;
+
+    if (paymentMethod === PaymentMethod.BANK_TRANSFER) {
+      if (bankAccountId) {
+        const bankAccount = await this.prisma.bankAccount.findUnique({
+          where: { id: bankAccountId },
+        });
+        if (!bankAccount || !bankAccount.isActive) {
+          throw new BadRequestException('Invalid or inactive bank account');
+        }
+      }
+
+      const transferRef = this.generateTransferReference();
+
+      return this.prisma.payment.create({
+        data: {
+          userId,
+          movieId,
+          amount,
+          invoiceCode,
+          paymentMethod: PaymentMethod.BANK_TRANSFER,
+          bankAccountId,
+          transferRef,
+        },
+        include: { movie: true, bankAccount: true },
+      });
+    }
+
+    // QPay payment
+    const callbackUrl = `${this.configService.get('QPAY_CALLBACK_URL')}?invoice=${invoiceCode}`;
+
+    const qpayInvoice = await this.qpayService.createInvoice({
+      invoiceCode,
+      amount,
+      description,
+      callbackUrl,
+    });
+
+    return this.prisma.payment.create({
+      data: {
+        userId,
+        movieId,
+        amount,
+        invoiceCode,
+        paymentMethod: PaymentMethod.QPAY,
+        qpayInvoiceId: qpayInvoice.invoice_id,
+        qpayQrCode: qpayInvoice.qr_text,
+        qpayQrImage: qpayInvoice.qr_image,
+        qpayDeeplinks: qpayInvoice.urls,
+      },
+      include: { movie: true },
+    });
+  }
+
   private generateTransferReference(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -157,7 +284,7 @@ export class PaymentsService {
   async getPayment(paymentId: string): Promise<Payment> {
     const payment = await this.prisma.payment.findUnique({
       where: { id: paymentId },
-      include: { subscriptionPlan: true },
+      include: { subscriptionPlan: true, movie: true },
     });
 
     if (!payment) {
@@ -170,7 +297,7 @@ export class PaymentsService {
   async getPaymentByInvoiceCode(invoiceCode: string): Promise<Payment | null> {
     return this.prisma.payment.findUnique({
       where: { invoiceCode },
-      include: { subscriptionPlan: true, user: true },
+      include: { subscriptionPlan: true, movie: true, user: true },
     });
   }
 
@@ -333,7 +460,7 @@ export class PaymentsService {
             },
           });
 
-          await this.createSubscriptionEntitlement(tx, payment);
+          await this.createEntitlement(tx, payment);
 
           this.logger.log(
             `Payment ${payment.id} marked as PAID via ${source} (QPay ID: ${paidRow.payment_id})`,
@@ -477,6 +604,7 @@ export class PaymentsService {
         include: {
           user: { select: { id: true, name: true, email: true } },
           subscriptionPlan: { select: { id: true, name: true } },
+          movie: { select: { id: true, title: true } },
           bankAccount: { select: { id: true, bankName: true, accountNumber: true } },
         },
       }),
@@ -491,7 +619,7 @@ export class PaymentsService {
   async notifyBankTransferPaid(paymentId: string): Promise<Payment> {
     const payment = await this.prisma.payment.findUnique({
       where: { id: paymentId },
-      include: { user: true, subscriptionPlan: true },
+      include: { user: true, subscriptionPlan: true, movie: true },
     });
 
     if (!payment) {
@@ -509,12 +637,12 @@ export class PaymentsService {
     const updatedPayment = await this.prisma.payment.update({
       where: { id: paymentId },
       data: { userNotifiedAt: new Date() },
-      include: { user: true, subscriptionPlan: true },
+      include: { user: true, subscriptionPlan: true, movie: true },
     });
 
     const adminEmail = await this.getAdminNotificationEmail();
     if (adminEmail) {
-      const itemName = (payment as any).subscriptionPlan?.name || 'Subscription';
+      const itemName = (payment as any).movie?.title || (payment as any).subscriptionPlan?.name || 'Subscription';
       this.emailService
         .sendBankTransferNotificationToAdmin(
           adminEmail,
@@ -561,7 +689,7 @@ export class PaymentsService {
         include: { user: true, subscriptionPlan: true },
       });
 
-      await this.createSubscriptionEntitlement(tx, payment);
+      await this.createEntitlement(tx, payment);
 
       this.logger.log(`Bank transfer payment ${paymentId} confirmed manually`);
 
@@ -614,32 +742,58 @@ export class PaymentsService {
 
   // ============ Helper Methods ============
 
-  private async createSubscriptionEntitlement(tx: any, payment: Payment): Promise<void> {
-    const plan = await tx.subscriptionPlan.findUnique({
-      where: { id: payment.subscriptionPlanId },
-    });
+  private async createEntitlement(tx: any, payment: Payment): Promise<void> {
+    if (payment.movieId) {
+      // Movie purchase entitlement
+      try {
+        await tx.moviePurchase.create({
+          data: {
+            userId: payment.userId,
+            movieId: payment.movieId,
+            paymentId: payment.id,
+          },
+        });
+        this.logger.log(
+          `Movie purchase created for user ${payment.userId}, movie ${payment.movieId}`,
+        );
+      } catch (error: any) {
+        // Catch unique constraint violation for idempotency
+        if (error?.code === 'P2002') {
+          this.logger.log(
+            `Movie purchase already exists for user ${payment.userId}, movie ${payment.movieId}`,
+          );
+          return;
+        }
+        throw error;
+      }
+    } else if (payment.subscriptionPlanId) {
+      // Subscription entitlement
+      const plan = await tx.subscriptionPlan.findUnique({
+        where: { id: payment.subscriptionPlanId },
+      });
 
-    if (!plan) {
-      throw new Error(`Subscription plan not found: ${payment.subscriptionPlanId}`);
+      if (!plan) {
+        throw new Error(`Subscription plan not found: ${payment.subscriptionPlanId}`);
+      }
+
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + plan.durationDays);
+
+      await tx.subscription.create({
+        data: {
+          userId: payment.userId,
+          planId: payment.subscriptionPlanId,
+          startDate,
+          endDate,
+          status: SubscriptionStatus.ACTIVE,
+        },
+      });
+
+      this.logger.log(
+        `Subscription created for user ${payment.userId}, plan ${plan.name}, expires ${endDate}`,
+      );
     }
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + plan.durationDays);
-
-    await tx.subscription.create({
-      data: {
-        userId: payment.userId,
-        planId: payment.subscriptionPlanId,
-        startDate,
-        endDate,
-        status: SubscriptionStatus.ACTIVE,
-      },
-    });
-
-    this.logger.log(
-      `Subscription created for user ${payment.userId}, plan ${plan.name}, expires ${endDate}`,
-    );
   }
 
   private async sendPaymentConfirmationEmail(payment: Payment): Promise<void> {
@@ -649,21 +803,36 @@ export class PaymentsService {
 
     if (!user?.email) return;
 
-    const plan = await this.prisma.subscriptionPlan.findUnique({
-      where: { id: payment.subscriptionPlanId },
-    });
+    if (payment.movieId) {
+      const movie = await this.prisma.movie.findUnique({
+        where: { id: payment.movieId },
+      });
 
-    if (plan) {
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + plan.durationDays);
+      if (movie) {
+        await this.emailService.sendMoviePurchaseConfirmation(
+          user.email,
+          user.name,
+          movie.title,
+          payment.amount,
+        );
+      }
+    } else if (payment.subscriptionPlanId) {
+      const plan = await this.prisma.subscriptionPlan.findUnique({
+        where: { id: payment.subscriptionPlanId },
+      });
 
-      await this.emailService.sendSubscriptionConfirmation(
-        user.email,
-        user.name,
-        plan.name,
-        payment.amount,
-        endDate,
-      );
+      if (plan) {
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + plan.durationDays);
+
+        await this.emailService.sendSubscriptionConfirmation(
+          user.email,
+          user.name,
+          plan.name,
+          payment.amount,
+          endDate,
+        );
+      }
     }
   }
 

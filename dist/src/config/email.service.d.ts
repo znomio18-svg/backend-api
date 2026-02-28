@@ -14,5 +14,6 @@ export declare class EmailService {
     sendEmail(options: EmailOptions): Promise<boolean>;
     sendSubscriptionConfirmation(userEmail: string, userName: string, planName: string, amount: number, endDate: Date): Promise<boolean>;
     sendBankTransferNotificationToAdmin(adminEmail: string, userName: string, userEmail: string, itemName: string, amount: number, transferRef: string, paymentId: string): Promise<boolean>;
+    sendMoviePurchaseConfirmation(userEmail: string, userName: string, movieTitle: string, amount: number): Promise<boolean>;
     sendSubscriptionExpiryWarning(userEmail: string, userName: string, planName: string, daysRemaining: number): Promise<boolean>;
 }

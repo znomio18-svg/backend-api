@@ -118,6 +118,32 @@ let EmailService = EmailService_1 = class EmailService {
       `,
         });
     }
+    async sendMoviePurchaseConfirmation(userEmail, userName, movieTitle, amount) {
+        const formattedAmount = amount.toLocaleString('mn-MN');
+        return this.sendEmail({
+            to: userEmail,
+            subject: `Кино амжилттай худалдан авлаа - ${movieTitle}`,
+            html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #E91E63;">1MinDrama Movies</h2>
+          <p>Сайн байна уу, ${userName}!</p>
+          <p>Таны кино худалдан авалт амжилттай боллоо.</p>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Кино:</strong> ${movieTitle}</p>
+            <p><strong>Төлбөр:</strong> ₮${formattedAmount}</p>
+          </div>
+          <p>Та одоо энэ киног хүссэн үедээ үзэх боломжтой боллоо!</p>
+          <a href="${this.configService.get('FRONTEND_URL', 'https://1MinDrama.mn')}/movies"
+             style="display: inline-block; background: #E91E63; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+            Кино үзэх
+          </a>
+          <p style="margin-top: 30px; color: #666; font-size: 12px;">
+            1MinDrama Movies - Монголын шилдэг кино платформ
+          </p>
+        </div>
+      `,
+        });
+    }
     async sendSubscriptionExpiryWarning(userEmail, userName, planName, daysRemaining) {
         return this.sendEmail({
             to: userEmail,

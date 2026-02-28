@@ -12,8 +12,10 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
+import { User } from '@prisma/client';
 import { MoviesService, MovieListParams } from './movies.service';
 import { Public } from '../../common/decorators/public.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { SubscriptionGuard } from '../../common/guards/subscription.guard';
 
@@ -45,6 +47,12 @@ export class MoviesController {
   @ApiOperation({ summary: 'Get featured movies' })
   async getFeatured() {
     return this.moviesService.getFeaturedMovies();
+  }
+
+  @Get('purchased')
+  @ApiOperation({ summary: 'Get movies purchased by the current user' })
+  async getPurchasedMovies(@CurrentUser() user: User) {
+    return this.moviesService.getUserPurchasedMovies(user.id);
   }
 
   @Get(':id')

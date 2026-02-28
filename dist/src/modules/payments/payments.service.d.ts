@@ -9,7 +9,8 @@ export interface ReconcileResult {
     reason?: string;
 }
 export interface CreatePaymentDto {
-    subscriptionPlanId: string;
+    subscriptionPlanId?: string;
+    movieId?: string;
     paymentMethod?: PaymentMethod;
     bankAccountId?: string;
 }
@@ -21,6 +22,8 @@ export declare class PaymentsService {
     private readonly logger;
     constructor(prisma: PrismaService, qpayService: QpayService, configService: ConfigService, emailService: EmailService);
     createPayment(userId: string, options: CreatePaymentDto): Promise<Payment>;
+    private createSubscriptionPayment;
+    private createMoviePayment;
     private generateTransferReference;
     getPayment(paymentId: string): Promise<Payment>;
     getPaymentByInvoiceCode(invoiceCode: string): Promise<Payment | null>;
@@ -48,10 +51,14 @@ export declare class PaymentsService {
                 email: string | null;
                 name: string;
             };
+            movie: {
+                id: string;
+                title: string;
+            } | null;
             subscriptionPlan: {
                 id: string;
                 name: string;
-            };
+            } | null;
             bankAccount: {
                 id: string;
                 bankName: string;
@@ -62,9 +69,10 @@ export declare class PaymentsService {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.PaymentStatus;
-            subscriptionPlanId: string;
+            subscriptionPlanId: string | null;
+            movieId: string | null;
             amount: number;
+            status: import(".prisma/client").$Enums.PaymentStatus;
             paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
             qpayQrCode: string | null;
@@ -99,7 +107,7 @@ export declare class PaymentsService {
         accountHolder: string;
         sortOrder: number;
     }[]>;
-    private createSubscriptionEntitlement;
+    private createEntitlement;
     private sendPaymentConfirmationEmail;
     private getAdminNotificationEmail;
 }

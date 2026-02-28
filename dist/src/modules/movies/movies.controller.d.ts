@@ -1,3 +1,4 @@
+import { User } from '@prisma/client';
 import { MoviesService, MovieListParams } from './movies.service';
 export declare class MoviesController {
     private moviesService;
@@ -18,6 +19,7 @@ export declare class MoviesController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
+            price: number | null;
         }[];
         pagination: {
             page: number;
@@ -43,6 +45,24 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
+    }[]>;
+    getPurchasedMovies(user: User): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        description: string;
+        thumbnailUrl: string;
+        trailerVideoId: string | null;
+        videoId: string;
+        duration: number;
+        releaseYear: number;
+        rating: number;
+        viewCount: number;
+        isFeatured: boolean;
+        isPublished: boolean;
+        price: number | null;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
@@ -59,6 +79,7 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
     }>;
     getTrailerUrl(id: string): Promise<{
         streamUrl: string;
@@ -79,6 +100,7 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
     } & {
         streamUrl: string;
     }>;

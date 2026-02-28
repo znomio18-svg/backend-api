@@ -29,7 +29,12 @@ import { User, PaymentMethod } from '@prisma/client';
 
 class CreatePaymentDto {
   @IsString()
-  subscriptionPlanId: string;
+  @IsOptional()
+  subscriptionPlanId?: string;
+
+  @IsString()
+  @IsOptional()
+  movieId?: string;
 
   @IsEnum(PaymentMethod)
   @IsOptional()

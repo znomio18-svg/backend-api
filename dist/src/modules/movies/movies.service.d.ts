@@ -12,6 +12,7 @@ export interface CreateMovieDto {
     releaseYear: number;
     isFeatured?: boolean;
     isPublished?: boolean;
+    price?: number | null;
 }
 export interface UpdateMovieDto extends Partial<CreateMovieDto> {
 }
@@ -46,6 +47,7 @@ export declare class MoviesService {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
+            price: number | null;
         }[];
         pagination: {
             page: number;
@@ -75,5 +77,7 @@ export declare class MoviesService {
         draftMovies: number;
         totalViews: number;
     }>;
+    hasUserPurchasedMovie(userId: string, movieId: string): Promise<boolean>;
+    getUserPurchasedMovies(userId: string): Promise<Movie[]>;
     private resolveMovieUrls;
 }

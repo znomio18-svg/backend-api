@@ -19,7 +19,7 @@ let AdminService = class AdminService {
     }
     async getDashboardStats(filter) {
         const dateFilter = this.buildDateFilter(filter);
-        const [totalUsers, totalMovies, featuredMovies, revenueResult, totalPayments, recentPayments, activeSubscriptions,] = await Promise.all([
+        const [totalUsers, totalMovies, featuredMovies, revenueResult, totalPayments, recentPayments, activeSubscriptions, totalMoviePurchases, moviePurchaseRevenueResult,] = await Promise.all([
             this.prisma.user.count(),
             this.prisma.movie.count(),
             this.prisma.movie.count({ where: { isFeatured: true } }),
@@ -45,6 +45,15 @@ let AdminService = class AdminService {
                     endDate: { gt: new Date() },
                 },
             }),
+            this.prisma.moviePurchase.count(),
+            this.prisma.payment.aggregate({
+                where: {
+                    status: client_1.PaymentStatus.PAID,
+                    movieId: { not: null },
+                    ...dateFilter,
+                },
+                _sum: { amount: true },
+            }),
         ]);
         return {
             totalUsers,
@@ -54,6 +63,8 @@ let AdminService = class AdminService {
             totalPayments,
             recentPayments,
             activeSubscriptions,
+            totalMoviePurchases,
+            moviePurchaseRevenue: moviePurchaseRevenueResult._sum.amount || 0,
         };
     }
     async getRevenueStats(filter) {
@@ -149,6 +160,28 @@ let AdminService = class AdminService {
             count: r._count.id,
             amount: r._sum.amount || 0,
         }));
+    }
+    async getMoviePurchases(params) {
+        const { skip = 0, take = 20, movieId } = params;
+        const where = {};
+        if (movieId) {
+            where.movieId = movieId;
+        }
+        const [purchases, total] = await Promise.all([
+            this.prisma.moviePurchase.findMany({
+                where,
+                skip,
+                take,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { id: true, name: true, email: true } },
+                    movie: { select: { id: true, title: true, price: true } },
+                    payment: { select: { id: true, amount: true, paymentMethod: true, paidAt: true } },
+                },
+            }),
+            this.prisma.moviePurchase.count({ where }),
+        ]);
+        return { purchases, total };
     }
     buildDateFilter(filter) {
         if (!filter?.startDate && !filter?.endDate)

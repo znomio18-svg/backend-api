@@ -171,6 +171,14 @@ let AdminController = class AdminController {
         await this.subscriptionsService.deletePlan(id);
         return { success: true };
     }
+    async getMoviePurchases(page, limit, movieId) {
+        const skip = ((page || 1) - 1) * (limit || 20);
+        return this.adminService.getMoviePurchases({
+            skip,
+            take: limit || 20,
+            movieId: movieId || undefined,
+        });
+    }
     async getSubscriptionStats() {
         return this.subscriptionsService.getSubscriptionStats();
     }
@@ -437,6 +445,19 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "deleteSubscriptionPlan", null);
+__decorate([
+    (0, common_1.Get)('movie-purchases'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get movie purchase history' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'movieId', required: false, type: String }),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('movieId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, String]),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "getMoviePurchases", null);
 __decorate([
     (0, common_1.Get)('subscriptions/stats'),
     (0, swagger_1.ApiOperation)({ summary: 'Get subscription statistics' }),

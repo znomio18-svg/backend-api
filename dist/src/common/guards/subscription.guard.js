@@ -30,15 +30,29 @@ let SubscriptionGuard = class SubscriptionGuard {
                 endDate: { gt: new Date() },
             },
         });
-        if (!subscription) {
-            throw new common_1.ForbiddenException({
-                statusCode: 403,
-                error: 'SUBSCRIPTION_REQUIRED',
-                message: 'Энэ контентыг үзэхийн тулд эрх худалдан авна уу.',
-                messageEn: 'An active subscription is required to access this content.',
-            });
+        if (subscription) {
+            return true;
         }
-        return true;
+        const movieId = request.params?.id;
+        if (movieId) {
+            const purchase = await this.prisma.moviePurchase.findUnique({
+                where: {
+                    userId_movieId: {
+                        userId: user.id,
+                        movieId,
+                    },
+                },
+            });
+            if (purchase) {
+                return true;
+            }
+        }
+        throw new common_1.ForbiddenException({
+            statusCode: 403,
+            error: 'SUBSCRIPTION_REQUIRED',
+            message: 'Энэ контентыг үзэхийн тулд эрх худалдан авна уу.',
+            messageEn: 'An active subscription is required to access this content.',
+        });
     }
 };
 exports.SubscriptionGuard = SubscriptionGuard;
