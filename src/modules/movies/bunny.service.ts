@@ -58,18 +58,26 @@ export class BunnyService {
   generateSignedUrl(videoId: string, expiresInSeconds: number = 3600): string {
     const expires = Math.floor(Date.now() / 1000) + expiresInSeconds;
     // Sign the directory so token covers all sub-resources (quality playlists, .ts segments)
-    const tokenPath = `/${videoId}/`;
+    const signaturePath = `/${videoId}/`;
 
-    const hashableBase = this.apiKey + tokenPath + expires.toString();
+    // Bunny CDN advanced token auth: hash includes sorted query params (excluding token & expires)
+    // See: https://github.com/BunnyWay/BunnyCDN.TokenAuthentication/blob/master/nodejs/token.js
+    const parameterData = `token_path=${signaturePath}`;
+    const hashableBase = this.apiKey + signaturePath + expires.toString() + parameterData;
     const token = crypto
       .createHash('sha256')
       .update(hashableBase)
       .digest('base64')
+      .replace(/\n/g, '')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=/g, '');
 
-    return `https://${this.cdnHostname}/${videoId}/playlist.m3u8?token=${token}&expires=${expires}&token_path=${encodeURIComponent(tokenPath)}`;
+    // Path-based token format: /bcdn_token=.../{path}
+    // HLS sub-resources (quality playlists, .ts segments) automatically inherit auth
+    // because the token prefix is preserved in relative URL resolution.
+    const encodedTokenPath = encodeURIComponent(signaturePath);
+    return `https://${this.cdnHostname}/bcdn_token=${token}&token_path=${encodedTokenPath}&expires=${expires}/${videoId}/playlist.m3u8`;
   }
 
   getEmbedUrl(videoId: string): string {

@@ -146,7 +146,7 @@ export class MoviesService {
     movieId: string,
   ): Promise<Movie & { streamUrl: string }> {
     const movie = await this.findOne(movieId);
-    const streamUrl = this.bunnyService.generateSignedUrl(movie.videoId, 14400);
+    const streamUrl = this.bunnyService.getEmbedUrl(movie.videoId);
     return { ...movie, streamUrl };
   }
 
