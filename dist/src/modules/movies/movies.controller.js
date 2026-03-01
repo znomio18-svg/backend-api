@@ -103,7 +103,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id/stream'),
     (0, common_1.UseGuards)(subscription_guard_1.SubscriptionGuard),
-    (0, swagger_1.ApiOperation)({ summary: 'Get movie stream URL (requires active subscription)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get movie stream URL (requires subscription or movie purchase)' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

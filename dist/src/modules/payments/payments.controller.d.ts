@@ -47,15 +47,15 @@ export declare class PaymentsController {
     }>;
     getBankAccounts(): Promise<{
         id: string;
+        description: string | null;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
+        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
-        sortOrder: number;
+        isActive: boolean;
     }[]>;
     handleWebhook(invoiceCode: string): Promise<{
         success: boolean;

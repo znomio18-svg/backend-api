@@ -17,6 +17,7 @@ import {
   ApiQuery,
   ApiHeader,
   ApiBearerAuth,
+  ApiProperty,
 } from '@nestjs/swagger';
 import { IsString, IsOptional, IsEnum } from 'class-validator';
 import { Request } from 'express';
@@ -28,18 +29,22 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { User, PaymentMethod } from '@prisma/client';
 
 class CreatePaymentDto {
+  @ApiProperty({ description: 'Subscription plan ID (provide this OR movieId)', required: false, example: 'clxxx...' })
   @IsString()
   @IsOptional()
   subscriptionPlanId?: string;
 
+  @ApiProperty({ description: 'Movie ID for per-movie purchase (provide this OR subscriptionPlanId)', required: false, example: 'clxxx...' })
   @IsString()
   @IsOptional()
   movieId?: string;
 
+  @ApiProperty({ description: 'Payment method', required: false, enum: PaymentMethod, default: 'QPAY' })
   @IsEnum(PaymentMethod)
   @IsOptional()
   paymentMethod?: PaymentMethod;
 
+  @ApiProperty({ description: 'Bank account ID (required for BANK_TRANSFER method)', required: false })
   @IsString()
   @IsOptional()
   bankAccountId?: string;
@@ -76,7 +81,7 @@ export class PaymentsController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new subscription payment' })
+  @ApiOperation({ summary: 'Create a payment for subscription or movie purchase' })
   async createPayment(
     @CurrentUser() user: User,
     @Body() dto: CreatePaymentDto,

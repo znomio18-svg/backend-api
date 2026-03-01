@@ -71,7 +71,7 @@ export class MoviesController {
 
   @Get(':id/stream')
   @UseGuards(SubscriptionGuard)
-  @ApiOperation({ summary: 'Get movie stream URL (requires active subscription)' })
+  @ApiOperation({ summary: 'Get movie stream URL (requires subscription or movie purchase)' })
   async getStreamUrl(@Param('id') id: string) {
     return this.moviesService.getMovieWithStreamUrl(id);
   }

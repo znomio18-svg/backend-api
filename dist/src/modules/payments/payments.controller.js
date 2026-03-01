@@ -26,21 +26,25 @@ const client_1 = require("@prisma/client");
 class CreatePaymentDto {
 }
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Subscription plan ID (provide this OR movieId)', required: false, example: 'clxxx...' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "subscriptionPlanId", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Movie ID for per-movie purchase (provide this OR subscriptionPlanId)', required: false, example: 'clxxx...' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "movieId", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Payment method', required: false, enum: client_1.PaymentMethod, default: 'QPAY' }),
     (0, class_validator_1.IsEnum)(client_1.PaymentMethod),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "paymentMethod", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Bank account ID (required for BANK_TRANSFER method)', required: false }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
@@ -126,7 +130,7 @@ let PaymentsController = PaymentsController_1 = class PaymentsController {
 exports.PaymentsController = PaymentsController;
 __decorate([
     (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Create a new subscription payment' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a payment for subscription or movie purchase' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
