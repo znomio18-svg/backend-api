@@ -57,9 +57,10 @@ export class BunnyService {
 
   generateSignedUrl(videoId: string, expiresInSeconds: number = 3600): string {
     const expires = Math.floor(Date.now() / 1000) + expiresInSeconds;
-    const path = `/${videoId}/playlist.m3u8`;
+    // Sign the directory so token covers all sub-resources (quality playlists, .ts segments)
+    const tokenPath = `/${videoId}/`;
 
-    const hashableBase = this.apiKey + path + expires.toString();
+    const hashableBase = this.apiKey + tokenPath + expires.toString();
     const token = crypto
       .createHash('sha256')
       .update(hashableBase)
@@ -68,7 +69,7 @@ export class BunnyService {
       .replace(/\//g, '_')
       .replace(/=/g, '');
 
-    return `https://${this.cdnHostname}${path}?token=${token}&expires=${expires}`;
+    return `https://${this.cdnHostname}/${videoId}/playlist.m3u8?token=${token}&expires=${expires}&token_path=${encodeURIComponent(tokenPath)}`;
   }
 
   getEmbedUrl(videoId: string): string {
