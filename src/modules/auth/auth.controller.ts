@@ -107,7 +107,9 @@ export class AuthController {
     requestedRedirect: string | undefined,
     accessToken: string,
   ): string {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const frontendUrl = this.normalizeFrontendUrl(
+      this.configService.get<string>('FRONTEND_URL'),
+    );
     const appRedirectDefault =
       this.configService.get<string>('MOBILE_APP_REDIRECT_URI') || '1mindramaapp://auth/callback';
     const appRedirectPrefix =
@@ -135,8 +137,36 @@ export class AuthController {
       }
     }
 
-    const redirectUrl = new URL(target);
+    const redirectUrl = this.safeParseUrl(
+      target,
+      new URL('/auth/callback', frontendUrl).toString(),
+    );
     redirectUrl.searchParams.set('token', accessToken);
     return redirectUrl.toString();
+  }
+
+  private normalizeFrontendUrl(value?: string): string {
+    const fallback = 'http://localhost:3000';
+    if (!value || value.trim().length === 0) return fallback;
+
+    const trimmed = value.trim();
+
+    try {
+      return new URL(trimmed).toString();
+    } catch {
+      try {
+        return new URL(`https://${trimmed}`).toString();
+      } catch {
+        return fallback;
+      }
+    }
+  }
+
+  private safeParseUrl(value: string, fallback: string): URL {
+    try {
+      return new URL(value);
+    } catch {
+      return new URL(fallback);
+    }
   }
 }

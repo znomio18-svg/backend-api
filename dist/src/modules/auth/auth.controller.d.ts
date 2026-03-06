@@ -27,5 +27,7 @@ export declare class AuthController {
     }>;
     private parseState;
     private buildRedirectUrl;
+    private normalizeFrontendUrl;
+    private safeParseUrl;
 }
 export {};

@@ -71,7 +71,7 @@ let AuthController = class AuthController {
         }
     }
     buildRedirectUrl(platform, requestedRedirect, accessToken) {
-        const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+        const frontendUrl = this.normalizeFrontendUrl(this.configService.get('FRONTEND_URL'));
         const appRedirectDefault = this.configService.get('MOBILE_APP_REDIRECT_URI') || '1mindramaapp://auth/callback';
         const appRedirectPrefix = this.configService.get('MOBILE_APP_REDIRECT_PREFIX') || appRedirectDefault;
         let target;
@@ -96,9 +96,34 @@ let AuthController = class AuthController {
                 }
             }
         }
-        const redirectUrl = new URL(target);
+        const redirectUrl = this.safeParseUrl(target, new URL('/auth/callback', frontendUrl).toString());
         redirectUrl.searchParams.set('token', accessToken);
         return redirectUrl.toString();
+    }
+    normalizeFrontendUrl(value) {
+        const fallback = 'http://localhost:3000';
+        if (!value || value.trim().length === 0)
+            return fallback;
+        const trimmed = value.trim();
+        try {
+            return new URL(trimmed).toString();
+        }
+        catch {
+            try {
+                return new URL(`https://${trimmed}`).toString();
+            }
+            catch {
+                return fallback;
+            }
+        }
+    }
+    safeParseUrl(value, fallback) {
+        try {
+            return new URL(value);
+        }
+        catch {
+            return new URL(fallback);
+        }
     }
 };
 exports.AuthController = AuthController;
