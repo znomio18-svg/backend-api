@@ -100,7 +100,7 @@ let MoviesService = class MoviesService {
     }
     async getMovieWithStreamUrl(movieId) {
         const movie = await this.findOne(movieId);
-        const streamUrl = this.bunnyService.generateSignedUrl(movie.videoId, 14400);
+        const streamUrl = this.bunnyService.getEmbedUrl(movie.videoId);
         return { ...movie, streamUrl };
     }
     async incrementViewCount(id) {

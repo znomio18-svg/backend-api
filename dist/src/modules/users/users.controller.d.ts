@@ -22,10 +22,10 @@ export declare class UsersController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            planId: string;
             startDate: Date;
             endDate: Date;
-            planId: string;
+            status: import("@prisma/client").$Enums.SubscriptionStatus;
             autoRenew: boolean;
         }) | null;
     }>;

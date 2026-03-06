@@ -13,17 +13,19 @@ export declare class AuthController {
     facebookLogin(req: any): void;
     facebookCallback(req: any, res: Response): Promise<void>;
     getProfile(user: User): Promise<{
+        name: string;
         id: string;
         facebookId: string;
         email: string | null;
-        name: string;
         avatar: string | null;
-        role: import(".prisma/client").$Enums.UserRole;
+        role: import("@prisma/client").$Enums.UserRole;
         createdAt: Date;
         updatedAt: Date;
     }>;
     adminLogin(dto: AdminLoginDto): Promise<{
         accessToken: string;
     }>;
+    private parseState;
+    private buildRedirectUrl;
 }
 export {};

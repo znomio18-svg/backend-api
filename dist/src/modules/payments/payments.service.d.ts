@@ -69,11 +69,11 @@ export declare class PaymentsService {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            subscriptionPlanId: string | null;
+            status: import("@prisma/client").$Enums.PaymentStatus;
             movieId: string | null;
+            subscriptionPlanId: string | null;
             amount: number;
-            status: import(".prisma/client").$Enums.PaymentStatus;
-            paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+            paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
             qpayQrCode: string | null;
             qpayQrImage: string | null;
@@ -88,7 +88,7 @@ export declare class PaymentsService {
             reconcileAttempts: number;
             lastReconcileAt: Date | null;
             nextReconcileAt: Date | null;
-            reconcileSource: import(".prisma/client").$Enums.ReconcileSource | null;
+            reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
         })[];
         total: number;
     }>;
@@ -101,11 +101,11 @@ export declare class PaymentsService {
         updatedAt: Date;
         description: string | null;
         isActive: boolean;
+        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
-        sortOrder: number;
     }[]>;
     private createEntitlement;
     private sendPaymentConfirmationEmail;

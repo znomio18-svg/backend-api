@@ -27,7 +27,7 @@ export declare class AdminService {
         }[];
     }>;
     getReportData(type: 'today' | 'week' | 'month' | 'custom', startDate?: Date, endDate?: Date): Promise<{
-        period: "today" | "week" | "month" | "custom";
+        period: "month" | "today" | "week" | "custom";
         startDate: Date | undefined;
         endDate: Date | undefined;
         stats: DashboardStats;
@@ -41,7 +41,7 @@ export declare class AdminService {
         };
         newUsers: number;
         paymentsByStatus: {
-            status: import(".prisma/client").$Enums.PaymentStatus;
+            status: import("@prisma/client").$Enums.PaymentStatus;
             count: number;
             amount: number;
         }[];
@@ -67,15 +67,15 @@ export declare class AdminService {
             payment: {
                 id: string;
                 amount: number;
-                paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+                paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
                 paidAt: Date | null;
             };
         } & {
             id: string;
             createdAt: Date;
             userId: string;
-            movieId: string;
             paymentId: string;
+            movieId: string;
         })[];
         total: number;
     }>;

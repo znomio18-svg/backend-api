@@ -15,6 +15,7 @@ const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const facebook_strategy_1 = require("./strategies/facebook.strategy");
+const facebook_auth_guard_1 = require("./guards/facebook-auth.guard");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -34,7 +35,7 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, facebook_strategy_1.FacebookStrategy],
+        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, facebook_strategy_1.FacebookStrategy, facebook_auth_guard_1.FacebookAuthGuard],
         exports: [auth_service_1.AuthService, jwt_1.JwtModule],
     })
 ], AuthModule);

@@ -47,16 +47,19 @@ let BunnyService = BunnyService_1 = class BunnyService {
     }
     generateSignedUrl(videoId, expiresInSeconds = 3600) {
         const expires = Math.floor(Date.now() / 1000) + expiresInSeconds;
-        const tokenPath = `/${videoId}/`;
-        const hashableBase = this.apiKey + tokenPath + expires.toString();
+        const signaturePath = `/${videoId}/`;
+        const parameterData = `token_path=${signaturePath}`;
+        const hashableBase = this.apiKey + signaturePath + expires.toString() + parameterData;
         const token = crypto
             .createHash('sha256')
             .update(hashableBase)
             .digest('base64')
+            .replace(/\n/g, '')
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=/g, '');
-        return `https://${this.cdnHostname}/${videoId}/playlist.m3u8?token=${token}&expires=${expires}&token_path=${encodeURIComponent(tokenPath)}`;
+        const encodedTokenPath = encodeURIComponent(signaturePath);
+        return `https://${this.cdnHostname}/bcdn_token=${token}&token_path=${encodedTokenPath}&expires=${expires}/${videoId}/playlist.m3u8`;
     }
     getEmbedUrl(videoId) {
         return `https://iframe.mediadelivery.net/embed/${this.libraryId}/${videoId}`;

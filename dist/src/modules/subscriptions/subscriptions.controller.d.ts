@@ -30,13 +30,13 @@ export declare class SubscriptionsController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            planId: string;
             startDate: Date;
             endDate: Date;
-            planId: string;
+            status: import("@prisma/client").$Enums.SubscriptionStatus;
             autoRenew: boolean;
         } & {
-            plan: import(".prisma/client").SubscriptionPlan;
+            plan: import("@prisma/client").SubscriptionPlan;
         }) | null;
     }>;
     getMySubscriptionHistory(userId: string): Promise<{
@@ -44,10 +44,10 @@ export declare class SubscriptionsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.SubscriptionStatus;
+        planId: string;
         startDate: Date;
         endDate: Date;
-        planId: string;
+        status: import("@prisma/client").$Enums.SubscriptionStatus;
         autoRenew: boolean;
     }[]>;
     getMySubscriptionStatus(userId: string): Promise<{
@@ -57,13 +57,13 @@ export declare class SubscriptionsController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            planId: string;
             startDate: Date;
             endDate: Date;
-            planId: string;
+            status: import("@prisma/client").$Enums.SubscriptionStatus;
             autoRenew: boolean;
         } & {
-            plan: import(".prisma/client").SubscriptionPlan;
+            plan: import("@prisma/client").SubscriptionPlan;
         }) | null;
     }>;
     cancelMySubscription(userId: string): Promise<{
@@ -71,10 +71,10 @@ export declare class SubscriptionsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        status: import(".prisma/client").$Enums.SubscriptionStatus;
+        planId: string;
         startDate: Date;
         endDate: Date;
-        planId: string;
+        status: import("@prisma/client").$Enums.SubscriptionStatus;
         autoRenew: boolean;
     }>;
 }

@@ -24,11 +24,11 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        subscriptionPlanId: string | null;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
         qpayQrImage: string | null;
@@ -43,19 +43,19 @@ export declare class PaymentsController {
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
-        reconcileSource: import(".prisma/client").$Enums.ReconcileSource | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
     }>;
     getBankAccounts(): Promise<{
         id: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
+        isActive: boolean;
         sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
-        isActive: boolean;
     }[]>;
     handleWebhook(invoiceCode: string): Promise<{
         success: boolean;
@@ -71,11 +71,11 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        subscriptionPlanId: string | null;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
         qpayQrImage: string | null;
@@ -90,18 +90,18 @@ export declare class PaymentsController {
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
-        reconcileSource: import(".prisma/client").$Enums.ReconcileSource | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
     }>;
     getPayment(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        subscriptionPlanId: string | null;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
         qpayQrImage: string | null;
@@ -116,18 +116,18 @@ export declare class PaymentsController {
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
-        reconcileSource: import(".prisma/client").$Enums.ReconcileSource | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
     }>;
     checkPayment(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        subscriptionPlanId: string | null;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
         qpayQrImage: string | null;
@@ -142,18 +142,18 @@ export declare class PaymentsController {
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
-        reconcileSource: import(".prisma/client").$Enums.ReconcileSource | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
     }>;
     reconcilePayment(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        subscriptionPlanId: string | null;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
         qpayQrImage: string | null;
@@ -168,7 +168,7 @@ export declare class PaymentsController {
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
-        reconcileSource: import(".prisma/client").$Enums.ReconcileSource | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
     }>;
 }
 export {};

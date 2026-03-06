@@ -14,11 +14,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
-const passport_1 = require("@nestjs/passport");
 const config_1 = require("@nestjs/config");
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const auth_service_1 = require("./auth.service");
+const facebook_auth_guard_1 = require("./guards/facebook-auth.guard");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
@@ -44,9 +44,9 @@ let AuthController = class AuthController {
     facebookLogin(req) {
     }
     async facebookCallback(req, res) {
-        const { accessToken, user } = await this.authService.login(req.user);
-        const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
-        const redirectUrl = `${frontendUrl}/auth/callback?token=${accessToken}`;
+        const { accessToken } = await this.authService.login(req.user);
+        const { platform, redirect } = this.parseState(typeof req.query?.state === 'string' ? req.query.state : undefined);
+        const redirectUrl = this.buildRedirectUrl(platform, redirect, accessToken);
         res.redirect(redirectUrl);
     }
     async getProfile(user) {
@@ -56,13 +56,58 @@ let AuthController = class AuthController {
     async adminLogin(dto) {
         return this.authService.adminLogin(dto.username, dto.password);
     }
+    parseState(state) {
+        if (!state)
+            return { platform: 'web' };
+        try {
+            const parsed = JSON.parse(Buffer.from(state, 'base64url').toString('utf8'));
+            return {
+                platform: parsed.platform === 'app' ? 'app' : 'web',
+                redirect: typeof parsed.redirect === 'string' ? parsed.redirect : undefined,
+            };
+        }
+        catch {
+            return { platform: 'web' };
+        }
+    }
+    buildRedirectUrl(platform, requestedRedirect, accessToken) {
+        const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+        const appRedirectDefault = this.configService.get('MOBILE_APP_REDIRECT_URI') || '1mindramaapp://auth/callback';
+        const appRedirectPrefix = this.configService.get('MOBILE_APP_REDIRECT_PREFIX') || appRedirectDefault;
+        let target;
+        if (platform === 'app') {
+            const isAllowedAppRedirect = typeof requestedRedirect === 'string' &&
+                requestedRedirect.startsWith(appRedirectPrefix);
+            target = isAllowedAppRedirect ? requestedRedirect : appRedirectDefault;
+        }
+        else {
+            const defaultWebCallback = new URL('/auth/callback', frontendUrl).toString();
+            if (!requestedRedirect) {
+                target = defaultWebCallback;
+            }
+            else {
+                try {
+                    const candidate = new URL(requestedRedirect, frontendUrl);
+                    const frontendOrigin = new URL(frontendUrl).origin;
+                    target = candidate.origin === frontendOrigin ? candidate.toString() : defaultWebCallback;
+                }
+                catch {
+                    target = defaultWebCallback;
+                }
+            }
+        }
+        const redirectUrl = new URL(target);
+        redirectUrl.searchParams.set('token', accessToken);
+        return redirectUrl.toString();
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Get)('facebook'),
     (0, public_decorator_1.Public)(),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('facebook')),
+    (0, common_1.UseGuards)(facebook_auth_guard_1.FacebookAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Initiate Facebook OAuth login' }),
+    (0, swagger_1.ApiQuery)({ name: 'platform', required: false, description: 'web | app' }),
     (0, swagger_1.ApiQuery)({ name: 'redirect', required: false, description: 'Redirect URL after login' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -72,7 +117,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('facebook/callback'),
     (0, public_decorator_1.Public)(),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('facebook')),
+    (0, common_1.UseGuards)(facebook_auth_guard_1.FacebookAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Facebook OAuth callback' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),

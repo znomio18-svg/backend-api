@@ -6,6 +6,8 @@ export declare class MoviesController {
     findAll(query: MovieListParams): Promise<{
         movies: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             title: string;
             description: string;
             thumbnailUrl: string;
@@ -18,8 +20,6 @@ export declare class MoviesController {
             isFeatured: boolean;
             isPublished: boolean;
             price: number | null;
-            createdAt: Date;
-            updatedAt: Date;
         }[];
         pagination: {
             page: number;
@@ -32,6 +32,8 @@ export declare class MoviesController {
     }>;
     getFeatured(): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         title: string;
         description: string;
         thumbnailUrl: string;
@@ -44,11 +46,11 @@ export declare class MoviesController {
         isFeatured: boolean;
         isPublished: boolean;
         price: number | null;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     getPurchasedMovies(user: User): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         title: string;
         description: string;
         thumbnailUrl: string;
@@ -61,11 +63,11 @@ export declare class MoviesController {
         isFeatured: boolean;
         isPublished: boolean;
         price: number | null;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         title: string;
         description: string;
         thumbnailUrl: string;
@@ -78,8 +80,6 @@ export declare class MoviesController {
         isFeatured: boolean;
         isPublished: boolean;
         price: number | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getTrailerUrl(id: string): Promise<{
         streamUrl: string;
@@ -87,6 +87,8 @@ export declare class MoviesController {
     } | null>;
     getStreamUrl(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         title: string;
         description: string;
         thumbnailUrl: string;
@@ -99,8 +101,6 @@ export declare class MoviesController {
         isFeatured: boolean;
         isPublished: boolean;
         price: number | null;
-        createdAt: Date;
-        updatedAt: Date;
     } & {
         streamUrl: string;
     }>;

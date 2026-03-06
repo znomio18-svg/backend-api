@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiQuery, ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
+import { FacebookAuthGuard } from './guards/facebook-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -36,8 +36,9 @@ export class AuthController {
    */
   @Get('facebook')
   @Public()
-  @UseGuards(AuthGuard('facebook'))
+  @UseGuards(FacebookAuthGuard)
   @ApiOperation({ summary: 'Initiate Facebook OAuth login' })
+  @ApiQuery({ name: 'platform', required: false, description: 'web | app' })
   @ApiQuery({ name: 'redirect', required: false, description: 'Redirect URL after login' })
   facebookLogin(@Req() req: any) {
     // Passport handles the redirect to Facebook
@@ -50,14 +51,14 @@ export class AuthController {
    */
   @Get('facebook/callback')
   @Public()
-  @UseGuards(AuthGuard('facebook'))
+  @UseGuards(FacebookAuthGuard)
   @ApiOperation({ summary: 'Facebook OAuth callback' })
   async facebookCallback(@Req() req: any, @Res() res: Response) {
-    const { accessToken, user } = await this.authService.login(req.user);
-
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-    const redirectUrl = `${frontendUrl}/auth/callback?token=${accessToken}`;
-
+    const { accessToken } = await this.authService.login(req.user);
+    const { platform, redirect } = this.parseState(
+      typeof req.query?.state === 'string' ? req.query.state : undefined,
+    );
+    const redirectUrl = this.buildRedirectUrl(platform, redirect, accessToken);
     res.redirect(redirectUrl);
   }
 
@@ -81,5 +82,61 @@ export class AuthController {
   @ApiOperation({ summary: 'Admin login with username and password (JWT)' })
   async adminLogin(@Body() dto: AdminLoginDto) {
     return this.authService.adminLogin(dto.username, dto.password);
+  }
+
+  private parseState(state?: string): { platform: 'web' | 'app'; redirect?: string } {
+    if (!state) return { platform: 'web' };
+
+    try {
+      const parsed = JSON.parse(Buffer.from(state, 'base64url').toString('utf8')) as {
+        platform?: string;
+        redirect?: string;
+      };
+
+      return {
+        platform: parsed.platform === 'app' ? 'app' : 'web',
+        redirect: typeof parsed.redirect === 'string' ? parsed.redirect : undefined,
+      };
+    } catch {
+      return { platform: 'web' };
+    }
+  }
+
+  private buildRedirectUrl(
+    platform: 'web' | 'app',
+    requestedRedirect: string | undefined,
+    accessToken: string,
+  ): string {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const appRedirectDefault =
+      this.configService.get<string>('MOBILE_APP_REDIRECT_URI') || '1mindramaapp://auth/callback';
+    const appRedirectPrefix =
+      this.configService.get<string>('MOBILE_APP_REDIRECT_PREFIX') || appRedirectDefault;
+
+    let target: string;
+
+    if (platform === 'app') {
+      const isAllowedAppRedirect =
+        typeof requestedRedirect === 'string' &&
+        requestedRedirect.startsWith(appRedirectPrefix);
+      target = isAllowedAppRedirect ? requestedRedirect : appRedirectDefault;
+    } else {
+      const defaultWebCallback = new URL('/auth/callback', frontendUrl).toString();
+      if (!requestedRedirect) {
+        target = defaultWebCallback;
+      } else {
+        try {
+          const candidate = new URL(requestedRedirect, frontendUrl);
+          const frontendOrigin = new URL(frontendUrl).origin;
+          target = candidate.origin === frontendOrigin ? candidate.toString() : defaultWebCallback;
+        } catch {
+          target = defaultWebCallback;
+        }
+      }
+    }
+
+    const redirectUrl = new URL(target);
+    redirectUrl.searchParams.set('token', accessToken);
+    return redirectUrl.toString();
   }
 }
