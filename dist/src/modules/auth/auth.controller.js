@@ -72,7 +72,7 @@ let AuthController = class AuthController {
     }
     buildRedirectUrl(platform, requestedRedirect, accessToken) {
         const frontendUrl = this.normalizeFrontendUrl(this.configService.get('FRONTEND_URL'));
-        const appRedirectDefault = this.configService.get('MOBILE_APP_REDIRECT_URI') || '1mindramaapp://auth/callback';
+        const appRedirectDefault = this.configService.get('MOBILE_APP_REDIRECT_URI') || 'mindramaapp://auth/callback';
         const appRedirectPrefix = this.configService.get('MOBILE_APP_REDIRECT_PREFIX') || appRedirectDefault;
         let target;
         if (platform === 'app') {

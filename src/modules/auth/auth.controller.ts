@@ -111,7 +111,7 @@ export class AuthController {
       this.configService.get<string>('FRONTEND_URL'),
     );
     const appRedirectDefault =
-      this.configService.get<string>('MOBILE_APP_REDIRECT_URI') || '1mindramaapp://auth/callback';
+      this.configService.get<string>('MOBILE_APP_REDIRECT_URI') || 'mindramaapp://auth/callback';
     const appRedirectPrefix =
       this.configService.get<string>('MOBILE_APP_REDIRECT_PREFIX') || appRedirectDefault;
 
