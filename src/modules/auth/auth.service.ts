@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../config/prisma.service';
+import { RedisService } from '../../config/redis.service';
 import { User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -14,9 +15,15 @@ export interface FacebookProfile {
 
 export interface JwtPayload {
   sub: string;
-  facebookId: string;
+  facebookId?: string;
+  phoneNumber?: string;
   role: string;
 }
+
+const OTP_PREFIX = 'otp:';
+const OTP_TTL = 300; // 5 minutes
+const OTP_RATE_PREFIX = 'otp_rate:';
+const OTP_RATE_TTL = 60; // 1 minute between OTP sends
 
 @Injectable()
 export class AuthService {
@@ -24,7 +31,94 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private redisService: RedisService,
   ) {}
+
+  async sendOtp(phoneNumber: string): Promise<{ success: boolean; message: string }> {
+    const normalized = this.normalizePhoneNumber(phoneNumber);
+    if (!normalized) {
+      throw new BadRequestException('Утасны дугаар буруу байна');
+    }
+
+    // Rate limiting
+    const rateKey = `${OTP_RATE_PREFIX}${normalized}`;
+    const rateLimited = await this.redisService.get(rateKey);
+    if (rateLimited) {
+      throw new BadRequestException('OTP кодыг 1 минутын дараа дахин илгээнэ үү');
+    }
+
+    // Generate 4-digit OTP
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Store OTP in Redis
+    const otpKey = `${OTP_PREFIX}${normalized}`;
+    await this.redisService.set(otpKey, otp, OTP_TTL);
+    await this.redisService.set(rateKey, '1', OTP_RATE_TTL);
+
+    // Send SMS via Skytel
+    await this.sendSms(normalized, `1MinDrama нэвтрэх код: ${otp}`);
+
+    return { success: true, message: 'OTP код илгээгдлээ' };
+  }
+
+  async verifyOtp(phoneNumber: string, otp: string): Promise<{ accessToken: string; user: Omit<User, 'password'> }> {
+    const normalized = this.normalizePhoneNumber(phoneNumber);
+    if (!normalized) {
+      throw new BadRequestException('Утасны дугаар буруу байна');
+    }
+
+    const otpKey = `${OTP_PREFIX}${normalized}`;
+    const storedOtp = await this.redisService.get(otpKey);
+
+    if (!storedOtp || storedOtp !== otp) {
+      throw new UnauthorizedException('OTP код буруу эсвэл хугацаа дууссан');
+    }
+
+    // Delete OTP after successful verification
+    await this.redisService.del(otpKey);
+
+    // Find or create user
+    let user = await this.prisma.user.findUnique({
+      where: { phoneNumber: normalized },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          phoneNumber: normalized,
+          name: normalized,
+        },
+      });
+    }
+
+    return this.login(user);
+  }
+
+  private normalizePhoneNumber(phone: string): string | null {
+    // Remove spaces, dashes, and leading +976
+    let cleaned = phone.replace(/[\s\-()]/g, '');
+    if (cleaned.startsWith('+976')) {
+      cleaned = cleaned.slice(4);
+    } else if (cleaned.startsWith('976') && cleaned.length === 11) {
+      cleaned = cleaned.slice(3);
+    }
+    // Mongolian phone numbers are 8 digits
+    if (/^\d{8}$/.test(cleaned)) {
+      return cleaned;
+    }
+    return null;
+  }
+
+  private async sendSms(recipient: string, message: string): Promise<void> {
+    const token = this.configService.get<string>('SKYTEL_SMS_TOKEN') || 'a79b877936f82339fe997ddc0dbcfac1e0d232e1';
+    const url = `http://web2sms.skytel.mn/apiSend?token=${token}&sendto=${recipient}&message=${encodeURIComponent(message)}`;
+
+    try {
+      await fetch(url);
+    } catch (error) {
+      throw new BadRequestException('SMS илгээхэд алдаа гарлаа');
+    }
+  }
 
   async adminLogin(
     username: string,
@@ -89,7 +183,7 @@ export class AuthService {
 
     const payload: JwtPayload = {
       sub: adminUser.id,
-      facebookId: adminUser.facebookId,
+      facebookId: adminUser.facebookId ?? undefined,
       role: adminUser.role,
     };
 
@@ -209,7 +303,8 @@ export class AuthService {
   async login(user: User): Promise<{ accessToken: string; user: Omit<User, 'password'> }> {
     const payload: JwtPayload = {
       sub: user.id,
-      facebookId: user.facebookId,
+      facebookId: user.facebookId ?? undefined,
+      phoneNumber: user.phoneNumber ?? undefined,
       role: user.role,
     };
 

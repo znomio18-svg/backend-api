@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiQuery, ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, Matches, Length } from 'class-validator';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
@@ -22,6 +22,26 @@ class AdminLoginDto {
   password: string;
 }
 
+class SendOtpDto {
+  @ApiProperty({ example: '99112233', description: 'Mongolian phone number (8 digits)' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+}
+
+class VerifyOtpDto {
+  @ApiProperty({ example: '99112233' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiProperty({ example: '1234', description: '4-digit OTP code' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(4, 4)
+  otp: string;
+}
+
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -29,6 +49,26 @@ export class AuthController {
     private authService: AuthService,
     private configService: ConfigService,
   ) {}
+
+  /**
+   * Send OTP to phone number.
+   */
+  @Post('otp/send')
+  @Public()
+  @ApiOperation({ summary: 'Send OTP code to phone number' })
+  async sendOtp(@Body() dto: SendOtpDto) {
+    return this.authService.sendOtp(dto.phoneNumber);
+  }
+
+  /**
+   * Verify OTP and login.
+   */
+  @Post('otp/verify')
+  @Public()
+  @ApiOperation({ summary: 'Verify OTP code and login' })
+  async verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyOtp(dto.phoneNumber, dto.otp);
+  }
 
   /**
    * Initiate Facebook OAuth login.
