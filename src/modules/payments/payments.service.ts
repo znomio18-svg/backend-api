@@ -294,6 +294,24 @@ export class PaymentsService {
     return payment;
   }
 
+  async getAdminPaymentDetail(paymentId: string): Promise<Payment> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        subscriptionPlan: true,
+        movie: true,
+        bankAccount: true,
+        user: { select: { id: true, name: true, email: true, avatar: true } },
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    return payment;
+  }
+
   async getPaymentByInvoiceCode(invoiceCode: string): Promise<Payment | null> {
     return this.prisma.payment.findUnique({
       where: { invoiceCode },
@@ -549,10 +567,25 @@ export class PaymentsService {
   }
 
   async expireOldPayments(): Promise<void> {
+    // Expire QPay payments after 30 minutes
     await this.prisma.payment.updateMany({
       where: {
         status: PaymentStatus.PENDING,
+        paymentMethod: PaymentMethod.QPAY,
         createdAt: { lt: new Date(Date.now() - 30 * 60 * 1000) },
+      },
+      data: {
+        status: PaymentStatus.EXPIRED,
+      },
+    });
+
+    // Expire bank transfers after 24 hours, but only if user hasn't notified
+    await this.prisma.payment.updateMany({
+      where: {
+        status: PaymentStatus.PENDING,
+        paymentMethod: PaymentMethod.BANK_TRANSFER,
+        userNotifiedAt: null,
+        createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
       },
       data: {
         status: PaymentStatus.EXPIRED,

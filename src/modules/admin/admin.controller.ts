@@ -223,6 +223,12 @@ export class AdminController {
     });
   }
 
+  @Get('payments/:id')
+  @ApiOperation({ summary: 'Get payment detail' })
+  async getPaymentDetail(@Param('id') id: string) {
+    return this.paymentsService.getAdminPaymentDetail(id);
+  }
+
   @Post('payments/:id/confirm')
   @ApiOperation({ summary: 'Manually confirm a bank transfer payment' })
   async confirmPayment(@Param('id') id: string) {
