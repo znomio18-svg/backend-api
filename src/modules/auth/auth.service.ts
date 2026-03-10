@@ -110,7 +110,7 @@ export class AuthService {
   }
 
   private async sendSms(recipient: string, message: string): Promise<void> {
-    const token = this.configService.get<string>('SKYTEL_SMS_TOKEN') || 'a79b877936f82339fe997ddc0dbcfac1e0d232e1';
+    const token = this.configService.get<string>('SKYTEL_SMS_TOKEN') || '38a16ddc2a6073daebbcf5d33d5d6bdbeb7dacf7';
     const url = `http://web2sms.skytel.mn/apiSend?token=${token}&sendto=${recipient}&message=${encodeURIComponent(message)}`;
 
     try {
