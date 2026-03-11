@@ -342,6 +342,62 @@ export class PaymentsService {
     return result.payment;
   }
 
+  /**
+   * Admin-only: reconcile a QPay payment regardless of current status.
+   * Handles PENDING payments and recovers wrongly EXPIRED payments.
+   */
+  async adminReconcilePayment(paymentId: string): Promise<Payment> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    if (payment.paymentMethod !== PaymentMethod.QPAY || !payment.qpayInvoiceId) {
+      throw new BadRequestException('This is not a QPay payment or has no QPay invoice ID');
+    }
+
+    if (payment.status === PaymentStatus.PAID) {
+      return payment;
+    }
+
+    if (payment.status !== PaymentStatus.PENDING && payment.status !== PaymentStatus.EXPIRED) {
+      throw new BadRequestException(`Cannot reconcile payment with status: ${payment.status}`);
+    }
+
+    const qpayCheck = await this.qpayService.checkPayment(payment.qpayInvoiceId);
+    const paidRow = qpayCheck.rows?.find((r) => r.payment_status === 'PAID');
+    const isPaid = qpayCheck.count > 0 &&
+                   qpayCheck.paid_amount >= payment.amount &&
+                   paidRow;
+
+    if (!isPaid) {
+      throw new BadRequestException(
+        `QPay reports this payment is not paid (count: ${qpayCheck.count}, paid_amount: ${qpayCheck.paid_amount})`,
+      );
+    }
+
+    // If payment was wrongly expired, reset to PENDING first so reconciliation can process it
+    if (payment.status === PaymentStatus.EXPIRED) {
+      this.logger.warn(`Admin recovering wrongly expired payment ${paymentId}`);
+      await this.prisma.payment.update({
+        where: { id: paymentId },
+        data: { status: PaymentStatus.PENDING },
+      });
+    }
+
+    const result = await this.reconcilePaymentIdempotent(
+      payment.invoiceCode,
+      qpayCheck,
+      ReconcileSource.MANUAL,
+    );
+
+    this.logger.log(`Admin manually reconciled payment ${paymentId}: ${result.action}`);
+    return result.payment;
+  }
+
   async handleWebhook(
     invoiceCode: string,
     rawPayload?: any,
@@ -567,17 +623,57 @@ export class PaymentsService {
   }
 
   async expireOldPayments(): Promise<void> {
-    // Expire QPay payments after 30 minutes
-    await this.prisma.payment.updateMany({
+    // Find QPay payments older than 30 minutes that are still pending
+    const staleQpayPayments = await this.prisma.payment.findMany({
       where: {
         status: PaymentStatus.PENDING,
         paymentMethod: PaymentMethod.QPAY,
         createdAt: { lt: new Date(Date.now() - 30 * 60 * 1000) },
       },
-      data: {
-        status: PaymentStatus.EXPIRED,
-      },
     });
+
+    for (const payment of staleQpayPayments) {
+      try {
+        if (!payment.qpayInvoiceId) {
+          // No QPay invoice ID — safe to expire
+          await this.prisma.payment.update({
+            where: { id: payment.id },
+            data: { status: PaymentStatus.EXPIRED },
+          });
+          continue;
+        }
+
+        // Check with QPay before expiring — payment might have been paid
+        const qpayCheck = await this.qpayService.checkPayment(payment.qpayInvoiceId);
+        const paidRow = qpayCheck.rows?.find((r) => r.payment_status === 'PAID');
+        const isPaid = qpayCheck.count > 0 &&
+                       qpayCheck.paid_amount >= payment.amount &&
+                       paidRow;
+
+        if (isPaid) {
+          // Payment was actually paid — reconcile instead of expiring
+          this.logger.warn(
+            `Payment ${payment.id} was paid on QPay but still PENDING — reconciling before expiration`,
+          );
+          await this.reconcilePaymentIdempotent(
+            payment.invoiceCode,
+            qpayCheck,
+            ReconcileSource.CRON,
+          );
+        } else {
+          // Truly unpaid — safe to expire
+          await this.prisma.payment.update({
+            where: { id: payment.id },
+            data: { status: PaymentStatus.EXPIRED },
+          });
+        }
+      } catch (error) {
+        // If QPay check fails, don't expire — leave for next cycle
+        this.logger.error(
+          `Failed to verify payment ${payment.id} before expiration: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+      }
+    }
 
     // Expire bank transfers after 24 hours, but only if user hasn't notified
     await this.prisma.payment.updateMany({

@@ -235,6 +235,12 @@ export class AdminController {
     return this.paymentsService.confirmBankTransferPayment(id);
   }
 
+  @Post('payments/:id/reconcile')
+  @ApiOperation({ summary: 'Manually reconcile a QPay payment (checks QPay API and updates status)' })
+  async reconcilePayment(@Param('id') id: string) {
+    return this.paymentsService.adminReconcilePayment(id);
+  }
+
   @Post('payments/:id/reject')
   @ApiOperation({ summary: 'Reject a bank transfer payment' })
   async rejectPayment(
