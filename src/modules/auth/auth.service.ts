@@ -56,7 +56,7 @@ export class AuthService {
     await this.redisService.set(rateKey, '1', OTP_RATE_TTL);
 
     // Send SMS via Skytel
-    await this.sendSms(normalized, `1MinDrama нэвтрэх код: ${otp}`);
+    await this.sendSms(normalized, `1MinDrama otp code: ${otp}`);
 
     return { success: true, message: 'OTP код илгээгдлээ' };
   }
