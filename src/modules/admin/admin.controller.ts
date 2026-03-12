@@ -29,7 +29,7 @@ import { SubscriptionsService, CreateSubscriptionPlanDto, UpdateSubscriptionPlan
 import { AuthService } from '../auth/auth.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole, PaymentStatus } from '@prisma/client';
+import { UserRole, PaymentStatus, MovieCategory } from '@prisma/client';
 
 class ChangePasswordDto {
   @ApiProperty({ example: 'currentPassword123' })
