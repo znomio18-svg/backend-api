@@ -47,9 +47,16 @@ enum ReconcileSource {
   MANUAL
 }
 
+enum MovieCategory {
+  NEW
+  HISTORICAL
+  MODERN
+}
+
 model User {
   id            String    @id @default(cuid())
-  facebookId    String    @unique
+  facebookId    String?   @unique
+  phoneNumber   String?   @unique
   email         String?   @unique
   name          String
   avatar        String?
@@ -98,6 +105,7 @@ model Movie {
   isFeatured      Boolean   @default(false)
   isPublished     Boolean   @default(false)
   price           Int?      // Per-movie price in MNT (null = subscription-only)
+  category        MovieCategory @default(NEW)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -107,6 +115,7 @@ model Movie {
   @@index([title])
   @@index([isFeatured])
   @@index([isPublished])
+  @@index([category])
   @@map("movies")
 }
 

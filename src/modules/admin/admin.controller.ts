@@ -29,7 +29,7 @@ import { SubscriptionsService, CreateSubscriptionPlanDto, UpdateSubscriptionPlan
 import { AuthService } from '../auth/auth.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole, PaymentStatus } from '@prisma/client';
+import { UserRole, PaymentStatus, MovieCategory } from '@prisma/client';
 
 class ChangePasswordDto {
   @ApiProperty({ example: 'currentPassword123' })
@@ -223,10 +223,22 @@ export class AdminController {
     });
   }
 
+  @Get('payments/:id')
+  @ApiOperation({ summary: 'Get payment detail' })
+  async getPaymentDetail(@Param('id') id: string) {
+    return this.paymentsService.getAdminPaymentDetail(id);
+  }
+
   @Post('payments/:id/confirm')
   @ApiOperation({ summary: 'Manually confirm a bank transfer payment' })
   async confirmPayment(@Param('id') id: string) {
     return this.paymentsService.confirmBankTransferPayment(id);
+  }
+
+  @Post('payments/:id/reconcile')
+  @ApiOperation({ summary: 'Manually reconcile a QPay payment (checks QPay API and updates status)' })
+  async reconcilePayment(@Param('id') id: string) {
+    return this.paymentsService.adminReconcilePayment(id);
   }
 
   @Post('payments/:id/reject')

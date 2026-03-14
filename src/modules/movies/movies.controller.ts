@@ -12,7 +12,7 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { User, MovieCategory } from '@prisma/client';
 import { MoviesService, MovieListParams } from './movies.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -34,10 +34,15 @@ export class MoviesController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'featured', required: false, type: Boolean })
   @ApiQuery({ name: 'sortBy', required: false, enum: ['createdAt', 'title', 'rating', 'viewCount'] })
+  @ApiQuery({ name: 'category', required: false, enum: ['NEW', 'HISTORICAL', 'MODERN'] })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
-  async findAll(@Query() query: MovieListParams) {
+  async findAll(@Query() query: MovieListParams & { category?: string }) {
+    const category = query.category && Object.values(MovieCategory).includes(query.category as MovieCategory)
+      ? (query.category as MovieCategory)
+      : undefined;
     return this.moviesService.findAll({
       ...query,
+      category,
       isPublished: true,
     });
   }

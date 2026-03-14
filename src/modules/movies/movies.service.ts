@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { RedisService } from '../../config/redis.service';
 import { BunnyService } from './bunny.service';
-import { Movie, Prisma } from '@prisma/client';
+import { Movie, MovieCategory, Prisma } from '@prisma/client';
 
 export interface CreateMovieDto {
   title: string;
@@ -15,6 +15,7 @@ export interface CreateMovieDto {
   isFeatured?: boolean;
   isPublished?: boolean;
   price?: number | null;
+  category?: MovieCategory;
 }
 
 export interface UpdateMovieDto extends Partial<CreateMovieDto> {}
@@ -24,6 +25,7 @@ export interface MovieListParams {
   limit?: number;
   search?: string;
   featured?: boolean;
+  category?: MovieCategory;
   sortBy?: 'createdAt' | 'title' | 'rating' | 'viewCount';
   sortOrder?: 'asc' | 'desc';
   isPublished?: boolean;
@@ -52,6 +54,7 @@ export class MoviesService {
       limit: rawLimit = 12,
       search,
       featured,
+      category,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       isPublished,
@@ -76,6 +79,10 @@ export class MoviesService {
 
     if (isPublished !== undefined) {
       where.isPublished = isPublished;
+    }
+
+    if (category) {
+      where.category = category;
     }
 
     const orderBy: Prisma.MovieOrderByWithRelationInput = {
