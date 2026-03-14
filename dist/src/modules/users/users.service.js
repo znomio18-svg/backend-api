@@ -61,6 +61,35 @@ let UsersService = class UsersService {
             subscription,
         };
     }
+    async registerPushToken(userId, dto) {
+        await this.prisma.pushDevice.upsert({
+            where: { expoPushToken: dto.expoPushToken },
+            update: {
+                userId,
+                devicePlatform: dto.devicePlatform,
+                deviceName: dto.deviceName,
+                appVersion: dto.appVersion,
+                lastSeenAt: new Date(),
+            },
+            create: {
+                userId,
+                expoPushToken: dto.expoPushToken,
+                devicePlatform: dto.devicePlatform,
+                deviceName: dto.deviceName,
+                appVersion: dto.appVersion,
+            },
+        });
+        return { success: true };
+    }
+    async unregisterPushToken(userId, expoPushToken) {
+        await this.prisma.pushDevice.deleteMany({
+            where: {
+                userId,
+                expoPushToken,
+            },
+        });
+        return { success: true };
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

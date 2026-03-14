@@ -8,8 +8,9 @@ export declare class MoviesController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             description: string;
+            price: number | null;
+            title: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -19,7 +20,6 @@ export declare class MoviesController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
-            price: number | null;
         }[];
         pagination: {
             page: number;
@@ -34,8 +34,9 @@ export declare class MoviesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -45,14 +46,14 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }[]>;
     getPurchasedMovies(user: User): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -62,14 +63,14 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -79,7 +80,6 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }>;
     getTrailerUrl(id: string): Promise<{
         streamUrl: string;
@@ -89,8 +89,9 @@ export declare class MoviesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -100,7 +101,6 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     } & {
         streamUrl: string;
     }>;

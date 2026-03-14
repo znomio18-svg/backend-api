@@ -1,5 +1,11 @@
 import { PrismaService } from '../../config/prisma.service';
-import { User, Prisma } from '@prisma/client';
+import { DevicePlatform, User, Prisma } from '@prisma/client';
+export interface RegisterPushTokenDto {
+    expoPushToken: string;
+    devicePlatform: DevicePlatform;
+    deviceName?: string;
+    appVersion?: string;
+}
 export declare class UsersService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -19,25 +25,31 @@ export declare class UsersService {
         subscription: ({
             plan: {
                 id: string;
-                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                nameEn: string | null;
                 description: string | null;
                 price: number;
-                nameEn: string | null;
                 durationDays: number;
                 isActive: boolean;
             };
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             userId: string;
             planId: string;
             startDate: Date;
             endDate: Date;
             status: import("@prisma/client").$Enums.SubscriptionStatus;
             autoRenew: boolean;
+            createdAt: Date;
+            updatedAt: Date;
         }) | null;
+    }>;
+    registerPushToken(userId: string, dto: RegisterPushTokenDto): Promise<{
+        success: boolean;
+    }>;
+    unregisterPushToken(userId: string, expoPushToken: string): Promise<{
+        success: boolean;
     }>;
 }

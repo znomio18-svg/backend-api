@@ -15,15 +15,56 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const client_1 = require("@prisma/client");
+const class_validator_1 = require("class-validator");
 const users_service_1 = require("./users.service");
 const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
+class RegisterPushTokenDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], RegisterPushTokenDto.prototype, "expoPushToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: client_1.DevicePlatform, enumName: 'DevicePlatform' }),
+    (0, class_validator_1.IsEnum)(client_1.DevicePlatform),
+    __metadata("design:type", String)
+], RegisterPushTokenDto.prototype, "devicePlatform", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterPushTokenDto.prototype, "deviceName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterPushTokenDto.prototype, "appVersion", void 0);
+class UnregisterPushTokenDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], UnregisterPushTokenDto.prototype, "expoPushToken", void 0);
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
     async getMySubscription(user) {
         return this.usersService.getUserSubscriptionStatus(user.id);
+    }
+    async registerPushToken(user, dto) {
+        return this.usersService.registerPushToken(user.id, dto);
+    }
+    async unregisterPushToken(user, dto) {
+        return this.usersService.unregisterPushToken(user.id, dto.expoPushToken);
     }
 };
 exports.UsersController = UsersController;
@@ -35,6 +76,24 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getMySubscription", null);
+__decorate([
+    (0, common_1.Post)('me/push-tokens'),
+    (0, swagger_1.ApiOperation)({ summary: 'Register Expo push token for current user' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, RegisterPushTokenDto]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "registerPushToken", null);
+__decorate([
+    (0, common_1.Delete)('me/push-tokens'),
+    (0, swagger_1.ApiOperation)({ summary: 'Unregister Expo push token for current user' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, UnregisterPushTokenDto]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "unregisterPushToken", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('Users'),
     (0, common_1.Controller)('users'),

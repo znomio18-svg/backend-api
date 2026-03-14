@@ -36,8 +36,9 @@ export declare class MoviesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             description: string;
+            price: number | null;
+            title: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -47,7 +48,6 @@ export declare class MoviesService {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
-            price: number | null;
         }[];
         pagination: {
             page: number;

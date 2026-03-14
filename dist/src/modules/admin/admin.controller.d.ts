@@ -23,7 +23,7 @@ export declare class AdminController {
     constructor(adminService: AdminService, moviesService: MoviesService, paymentsService: PaymentsService, usersService: UsersService, bankAccountsService: BankAccountsService, adminSettingsService: AdminSettingsService, subscriptionsService: SubscriptionsService, authService: AuthService);
     getDashboard(): Promise<import("./admin.service").DashboardStats>;
     getReports(type: 'today' | 'week' | 'month' | 'custom', startDate?: string, endDate?: string): Promise<{
-        period: "month" | "today" | "week" | "custom";
+        period: "today" | "week" | "month" | "custom";
         startDate: Date | undefined;
         endDate: Date | undefined;
         stats: import("./admin.service").DashboardStats;
@@ -55,8 +55,9 @@ export declare class AdminController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             description: string;
+            price: number | null;
+            title: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -66,7 +67,6 @@ export declare class AdminController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
-            price: number | null;
         }[];
         pagination: {
             page: number;
@@ -88,8 +88,9 @@ export declare class AdminController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -99,14 +100,14 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }>;
     createMovie(dto: CreateMovieDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -116,14 +117,14 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }>;
     updateMovie(id: string, dto: UpdateMovieDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -133,14 +134,14 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }>;
     toggleFeatured(id: string, isFeatured: boolean): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -150,7 +151,6 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
     }>;
     deleteMovie(id: string): Promise<{
         success: boolean;
@@ -161,29 +161,29 @@ export declare class AdminController {
     }>;
     getUser(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
         facebookId: string;
         email: string | null;
-        name: string;
         avatar: string | null;
         password: string | null;
         role: import("@prisma/client").$Enums.UserRole;
-        createdAt: Date;
-        updatedAt: Date;
     } | null>;
     getPayments(page?: number, limit?: number, status?: PaymentStatus, startDate?: string, endDate?: string, search?: string): Promise<{
         payments: ({
             user: {
                 id: string;
-                email: string | null;
                 name: string;
+                email: string | null;
             };
-            movie: {
-                id: string;
-                title: string;
-            } | null;
             subscriptionPlan: {
                 id: string;
                 name: string;
+            } | null;
+            movie: {
+                id: string;
+                title: string;
             } | null;
             bankAccount: {
                 id: string;
@@ -192,12 +192,12 @@ export declare class AdminController {
             } | null;
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             userId: string;
             status: import("@prisma/client").$Enums.PaymentStatus;
-            movieId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             subscriptionPlanId: string | null;
+            movieId: string | null;
             amount: number;
             paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
@@ -220,12 +220,12 @@ export declare class AdminController {
     }>;
     confirmPayment(id: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         userId: string;
         status: import("@prisma/client").$Enums.PaymentStatus;
-        movieId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
@@ -246,12 +246,12 @@ export declare class AdminController {
     }>;
     rejectPayment(id: string, reason?: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         userId: string;
         status: import("@prisma/client").$Enums.PaymentStatus;
-        movieId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         subscriptionPlanId: string | null;
+        movieId: string | null;
         amount: number;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
@@ -276,11 +276,11 @@ export declare class AdminController {
         updatedAt: Date;
         description: string | null;
         isActive: boolean;
-        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
+        sortOrder: number;
     }[]>;
     getBankAccount(id: string): Promise<{
         id: string;
@@ -288,11 +288,11 @@ export declare class AdminController {
         updatedAt: Date;
         description: string | null;
         isActive: boolean;
-        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
+        sortOrder: number;
     }>;
     createBankAccount(dto: CreateBankAccountDto): Promise<{
         id: string;
@@ -300,11 +300,11 @@ export declare class AdminController {
         updatedAt: Date;
         description: string | null;
         isActive: boolean;
-        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
+        sortOrder: number;
     }>;
     updateBankAccount(id: string, dto: UpdateBankAccountDto): Promise<{
         id: string;
@@ -312,11 +312,11 @@ export declare class AdminController {
         updatedAt: Date;
         description: string | null;
         isActive: boolean;
-        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
+        sortOrder: number;
     }>;
     deleteBankAccount(id: string): Promise<{
         success: boolean;
@@ -346,45 +346,45 @@ export declare class AdminController {
     }>;
     getSubscriptionPlans(includeInactive?: boolean): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        nameEn: string | null;
         description: string | null;
         price: number;
-        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }[]>;
     getSubscriptionPlan(id: string): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        nameEn: string | null;
         description: string | null;
         price: number;
-        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
     createSubscriptionPlan(dto: CreateSubscriptionPlanDto): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        nameEn: string | null;
         description: string | null;
         price: number;
-        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
     updateSubscriptionPlan(id: string, dto: UpdateSubscriptionPlanDto): Promise<{
         id: string;
-        name: string;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        nameEn: string | null;
         description: string | null;
         price: number;
-        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -395,13 +395,8 @@ export declare class AdminController {
         purchases: ({
             user: {
                 id: string;
-                email: string | null;
                 name: string;
-            };
-            movie: {
-                id: string;
-                title: string;
-                price: number | null;
+                email: string | null;
             };
             payment: {
                 id: string;
@@ -409,12 +404,17 @@ export declare class AdminController {
                 paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
                 paidAt: Date | null;
             };
+            movie: {
+                id: string;
+                price: number | null;
+                title: string;
+            };
         } & {
             id: string;
-            createdAt: Date;
             userId: string;
-            paymentId: string;
+            createdAt: Date;
             movieId: string;
+            paymentId: string;
         })[];
         total: number;
     }>;

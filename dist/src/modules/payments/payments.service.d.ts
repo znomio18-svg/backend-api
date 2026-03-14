@@ -48,16 +48,16 @@ export declare class PaymentsService {
         payments: ({
             user: {
                 id: string;
-                email: string | null;
                 name: string;
+                email: string | null;
             };
-            movie: {
-                id: string;
-                title: string;
-            } | null;
             subscriptionPlan: {
                 id: string;
                 name: string;
+            } | null;
+            movie: {
+                id: string;
+                title: string;
             } | null;
             bankAccount: {
                 id: string;
@@ -66,12 +66,12 @@ export declare class PaymentsService {
             } | null;
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             userId: string;
             status: import("@prisma/client").$Enums.PaymentStatus;
-            movieId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             subscriptionPlanId: string | null;
+            movieId: string | null;
             amount: number;
             paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
@@ -101,11 +101,11 @@ export declare class PaymentsService {
         updatedAt: Date;
         description: string | null;
         isActive: boolean;
-        sortOrder: number;
         bankName: string;
         bankCode: string;
         accountNumber: string;
         accountHolder: string;
+        sortOrder: number;
     }[]>;
     private createEntitlement;
     private sendPaymentConfirmationEmail;
