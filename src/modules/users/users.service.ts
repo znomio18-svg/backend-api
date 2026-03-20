@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
-import { User, Prisma, SubscriptionStatus } from '@prisma/client';
+import { DevicePlatform, User, Prisma, SubscriptionStatus } from '@prisma/client';
+
+export interface RegisterPushTokenDto {
+  expoPushToken: string;
+  devicePlatform: DevicePlatform;
+  deviceName?: string;
+  appVersion?: string;
+}
 
 @Injectable()
 export class UsersService {
@@ -60,5 +67,38 @@ export class UsersService {
       hasActiveSubscription: !!subscription,
       subscription,
     };
+  }
+
+  async registerPushToken(userId: string, dto: RegisterPushTokenDto) {
+    await this.prisma.pushDevice.upsert({
+      where: { expoPushToken: dto.expoPushToken },
+      update: {
+        userId,
+        devicePlatform: dto.devicePlatform,
+        deviceName: dto.deviceName,
+        appVersion: dto.appVersion,
+        lastSeenAt: new Date(),
+      },
+      create: {
+        userId,
+        expoPushToken: dto.expoPushToken,
+        devicePlatform: dto.devicePlatform,
+        deviceName: dto.deviceName,
+        appVersion: dto.appVersion,
+      },
+    });
+
+    return { success: true };
+  }
+
+  async unregisterPushToken(userId: string, expoPushToken: string) {
+    await this.prisma.pushDevice.deleteMany({
+      where: {
+        userId,
+        expoPushToken,
+      },
+    });
+
+    return { success: true };
   }
 }
