@@ -55,6 +55,7 @@ model User {
   avatar        String?
   password      String?   // Hashed password for admin users
   role          UserRole  @default(USER)
+  isTestAccount Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

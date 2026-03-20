@@ -19,6 +19,11 @@ export class SubscriptionGuard implements CanActivate {
       return false; // JwtAuthGuard should have already rejected
     }
 
+    // Test accounts bypass subscription check (for App Store / Play Store review)
+    if (user.isTestAccount) {
+      return true;
+    }
+
     // Check for active subscription
     const subscription = await this.prisma.subscription.findFirst({
       where: {

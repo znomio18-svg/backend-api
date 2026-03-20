@@ -34,10 +34,20 @@ export class AuthService {
     private redisService: RedisService,
   ) {}
 
+  private isTestAccount(phoneNumber: string): boolean {
+    const testPhone = this.configService.get<string>('TEST_ACCOUNT_PHONE');
+    return !!testPhone && phoneNumber === testPhone;
+  }
+
   async sendOtp(phoneNumber: string): Promise<{ success: boolean; message: string }> {
     const normalized = this.normalizePhoneNumber(phoneNumber);
     if (!normalized) {
       throw new BadRequestException('Утасны дугаар буруу байна');
+    }
+
+    // Test account: skip SMS, use fixed OTP
+    if (this.isTestAccount(normalized)) {
+      return { success: true, message: 'OTP код илгээгдлээ' };
     }
 
     // Rate limiting
@@ -65,6 +75,35 @@ export class AuthService {
     const normalized = this.normalizePhoneNumber(phoneNumber);
     if (!normalized) {
       throw new BadRequestException('Утасны дугаар буруу байна');
+    }
+
+    // Test account: verify against fixed OTP
+    if (this.isTestAccount(normalized)) {
+      const testOtp = this.configService.get<string>('TEST_ACCOUNT_OTP') || '1234';
+      if (otp !== testOtp) {
+        throw new UnauthorizedException('OTP код буруу эсвэл хугацаа дууссан');
+      }
+
+      let user = await this.prisma.user.findUnique({
+        where: { phoneNumber: normalized },
+      });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            phoneNumber: normalized,
+            name: 'Test Account',
+            isTestAccount: true,
+          },
+        });
+      } else if (!user.isTestAccount) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { isTestAccount: true },
+        });
+      }
+
+      return this.login(user);
     }
 
     const otpKey = `${OTP_PREFIX}${normalized}`;
