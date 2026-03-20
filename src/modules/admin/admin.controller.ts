@@ -18,7 +18,7 @@ import {
   ApiQuery,
   ApiProperty,
 } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
 import { AdminService } from './admin.service';
 import { MoviesService, CreateMovieDto, UpdateMovieDto } from '../movies/movies.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -27,9 +27,26 @@ import { BankAccountsService, CreateBankAccountDto, UpdateBankAccountDto } from 
 import { AdminSettingsService } from './admin-settings.service';
 import { SubscriptionsService, CreateSubscriptionPlanDto, UpdateSubscriptionPlanDto } from '../subscriptions/subscriptions.service';
 import { AuthService } from '../auth/auth.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole, PaymentStatus, MovieCategory } from '@prisma/client';
+
+class SendNotificationDto {
+  @ApiProperty({ example: 'Шинэ кино нэмэгдлээ!' })
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @ApiProperty({ example: 'Шинэ кино-г одоо үзээрэй' })
+  @IsString()
+  @IsNotEmpty()
+  body: string;
+
+  @ApiProperty({ required: false, example: { movieId: 'abc123' } })
+  @IsOptional()
+  data?: Record<string, string>;
+}
 
 class ChangePasswordDto {
   @ApiProperty({ example: 'currentPassword123' })
@@ -59,6 +76,7 @@ export class AdminController {
     private adminSettingsService: AdminSettingsService,
     private subscriptionsService: SubscriptionsService,
     private authService: AuthService,
+    private notificationsService: NotificationsService,
   ) {}
 
   // Dashboard
@@ -380,5 +398,19 @@ export class AdminController {
       dto.currentPassword,
       dto.newPassword,
     );
+  }
+
+  // Push Notifications
+  @Post('notifications/send')
+  @ApiOperation({ summary: 'Send push notification to all users' })
+  async sendNotification(@Body() dto: SendNotificationDto) {
+    return this.notificationsService.sendToAll(dto);
+  }
+
+  @Get('notifications/stats')
+  @ApiOperation({ summary: 'Get push notification device count' })
+  async getNotificationStats() {
+    const deviceCount = await this.notificationsService.getDeviceCount();
+    return { deviceCount };
   }
 }

@@ -18,7 +18,9 @@ export interface CreateMovieDto {
   category?: MovieCategory;
 }
 
-export interface UpdateMovieDto extends Partial<CreateMovieDto> {}
+export interface UpdateMovieDto extends Partial<CreateMovieDto> {
+  rating?: number;
+}
 
 export interface MovieListParams {
   page?: number;

@@ -8,6 +8,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { UsersModule } from '../users/users.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from '../auth/auth.module';
     PaymentsModule,
     UsersModule,
     SubscriptionsModule,
+    NotificationsModule,
     forwardRef(() => AuthModule),
   ],
   controllers: [AdminController],

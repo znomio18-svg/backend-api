@@ -36,7 +36,8 @@ export class AuthService {
 
   private isTestAccount(phoneNumber: string): boolean {
     const testPhone = this.configService.get<string>('TEST_ACCOUNT_PHONE');
-    return !!testPhone && phoneNumber === testPhone;
+    const normalized = testPhone?.replace(/[\s\-()]/g, '').replace(/^\+?976/, '') || '';
+    return !!normalized && phoneNumber === normalized;
   }
 
   async sendOtp(phoneNumber: string): Promise<{ success: boolean; message: string }> {
