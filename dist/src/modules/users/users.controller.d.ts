@@ -20,22 +20,22 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 name: string;
-                nameEn: string | null;
                 description: string | null;
                 price: number;
+                nameEn: string | null;
                 durationDays: number;
                 isActive: boolean;
             };
         } & {
             id: string;
             userId: string;
-            planId: string;
-            startDate: Date;
-            endDate: Date;
             status: import("@prisma/client").$Enums.SubscriptionStatus;
-            autoRenew: boolean;
             createdAt: Date;
             updatedAt: Date;
+            startDate: Date;
+            endDate: Date;
+            planId: string;
+            autoRenew: boolean;
         }) | null;
     }>;
     registerPushToken(user: User, dto: RegisterPushTokenDto): Promise<{

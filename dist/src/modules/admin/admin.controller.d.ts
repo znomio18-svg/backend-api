@@ -55,9 +55,8 @@ export declare class AdminController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string;
-            price: number | null;
             title: string;
+            description: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -67,6 +66,8 @@ export declare class AdminController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
+            price: number | null;
+            category: import("@prisma/client").$Enums.MovieCategory;
         }[];
         pagination: {
             page: number;
@@ -88,9 +89,8 @@ export declare class AdminController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string;
-        price: number | null;
         title: string;
+        description: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -100,14 +100,15 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
+        category: import("@prisma/client").$Enums.MovieCategory;
     }>;
     createMovie(dto: CreateMovieDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string;
-        price: number | null;
         title: string;
+        description: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -117,14 +118,15 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
+        category: import("@prisma/client").$Enums.MovieCategory;
     }>;
     updateMovie(id: string, dto: UpdateMovieDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string;
-        price: number | null;
         title: string;
+        description: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -134,14 +136,15 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
+        category: import("@prisma/client").$Enums.MovieCategory;
     }>;
     toggleFeatured(id: string, isFeatured: boolean): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string;
-        price: number | null;
         title: string;
+        description: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -151,6 +154,8 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
+        category: import("@prisma/client").$Enums.MovieCategory;
     }>;
     deleteMovie(id: string): Promise<{
         success: boolean;
@@ -164,11 +169,13 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        facebookId: string;
         email: string | null;
+        facebookId: string | null;
+        phoneNumber: string | null;
         avatar: string | null;
         password: string | null;
         role: import("@prisma/client").$Enums.UserRole;
+        isTestAccount: boolean;
     } | null>;
     getPayments(page?: number, limit?: number, status?: PaymentStatus, startDate?: string, endDate?: string, search?: string): Promise<{
         payments: ({
@@ -193,12 +200,10 @@ export declare class AdminController {
         } & {
             id: string;
             userId: string;
-            status: import("@prisma/client").$Enums.PaymentStatus;
-            createdAt: Date;
-            updatedAt: Date;
             subscriptionPlanId: string | null;
             movieId: string | null;
             amount: number;
+            status: import("@prisma/client").$Enums.PaymentStatus;
             paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
             qpayQrCode: string | null;
@@ -211,6 +216,8 @@ export declare class AdminController {
             userNotifiedAt: Date | null;
             invoiceCode: string;
             paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             reconcileAttempts: number;
             lastReconcileAt: Date | null;
             nextReconcileAt: Date | null;
@@ -218,15 +225,13 @@ export declare class AdminController {
         })[];
         total: number;
     }>;
-    confirmPayment(id: string): Promise<{
+    getPaymentDetail(id: string): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -239,6 +244,60 @@ export declare class AdminController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        reconcileAttempts: number;
+        lastReconcileAt: Date | null;
+        nextReconcileAt: Date | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
+    }>;
+    confirmPayment(id: string): Promise<{
+        id: string;
+        userId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
+        amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
+        qpayInvoiceId: string | null;
+        qpayQrCode: string | null;
+        qpayQrImage: string | null;
+        qpayDeeplinks: import("@prisma/client/runtime/library").JsonValue | null;
+        qpayPaymentId: string | null;
+        qpayRawPayload: import("@prisma/client/runtime/library").JsonValue | null;
+        bankAccountId: string | null;
+        transferRef: string | null;
+        userNotifiedAt: Date | null;
+        invoiceCode: string;
+        paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        reconcileAttempts: number;
+        lastReconcileAt: Date | null;
+        nextReconcileAt: Date | null;
+        reconcileSource: import("@prisma/client").$Enums.ReconcileSource | null;
+    }>;
+    reconcilePayment(id: string): Promise<{
+        id: string;
+        userId: string;
+        subscriptionPlanId: string | null;
+        movieId: string | null;
+        amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
+        paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
+        qpayInvoiceId: string | null;
+        qpayQrCode: string | null;
+        qpayQrImage: string | null;
+        qpayDeeplinks: import("@prisma/client/runtime/library").JsonValue | null;
+        qpayPaymentId: string | null;
+        qpayRawPayload: import("@prisma/client/runtime/library").JsonValue | null;
+        bankAccountId: string | null;
+        transferRef: string | null;
+        userNotifiedAt: Date | null;
+        invoiceCode: string;
+        paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
@@ -247,12 +306,10 @@ export declare class AdminController {
     rejectPayment(id: string, reason?: string): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -265,6 +322,8 @@ export declare class AdminController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
@@ -349,9 +408,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }[]>;
@@ -360,9 +419,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -371,9 +430,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -382,9 +441,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -393,27 +452,27 @@ export declare class AdminController {
     }>;
     getMoviePurchases(page?: number, limit?: number, movieId?: string): Promise<{
         purchases: ({
-            user: {
-                id: string;
-                name: string;
-                email: string | null;
-            };
             payment: {
                 id: string;
                 amount: number;
                 paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
                 paidAt: Date | null;
             };
+            user: {
+                id: string;
+                name: string;
+                email: string | null;
+            };
             movie: {
                 id: string;
-                price: number | null;
                 title: string;
+                price: number | null;
             };
         } & {
             id: string;
             userId: string;
-            createdAt: Date;
             movieId: string;
+            createdAt: Date;
             paymentId: string;
         })[];
         total: number;

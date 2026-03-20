@@ -1,7 +1,7 @@
 import { PrismaService } from '../../config/prisma.service';
 import { RedisService } from '../../config/redis.service';
 import { BunnyService } from './bunny.service';
-import { Movie } from '@prisma/client';
+import { Movie, MovieCategory } from '@prisma/client';
 export interface CreateMovieDto {
     title: string;
     description: string;
@@ -13,6 +13,7 @@ export interface CreateMovieDto {
     isFeatured?: boolean;
     isPublished?: boolean;
     price?: number | null;
+    category?: MovieCategory;
 }
 export interface UpdateMovieDto extends Partial<CreateMovieDto> {
 }
@@ -21,6 +22,7 @@ export interface MovieListParams {
     limit?: number;
     search?: string;
     featured?: boolean;
+    category?: MovieCategory;
     sortBy?: 'createdAt' | 'title' | 'rating' | 'viewCount';
     sortOrder?: 'asc' | 'desc';
     isPublished?: boolean;
@@ -36,9 +38,8 @@ export declare class MoviesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string;
-            price: number | null;
             title: string;
+            description: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -48,6 +49,8 @@ export declare class MoviesService {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
+            price: number | null;
+            category: import("@prisma/client").$Enums.MovieCategory;
         }[];
         pagination: {
             page: number;

@@ -22,12 +22,10 @@ export declare class PaymentsController {
     createPayment(user: User, dto: CreatePaymentDto): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -40,6 +38,8 @@ export declare class PaymentsController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
@@ -69,12 +69,10 @@ export declare class PaymentsController {
     notifyBankTransferPaid(id: string): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -87,6 +85,8 @@ export declare class PaymentsController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
@@ -95,12 +95,10 @@ export declare class PaymentsController {
     getPayment(id: string): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -113,6 +111,8 @@ export declare class PaymentsController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
@@ -121,12 +121,10 @@ export declare class PaymentsController {
     checkPayment(id: string): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -139,6 +137,8 @@ export declare class PaymentsController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;
@@ -147,12 +147,10 @@ export declare class PaymentsController {
     reconcilePayment(id: string): Promise<{
         id: string;
         userId: string;
-        status: import("@prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        updatedAt: Date;
         subscriptionPlanId: string | null;
         movieId: string | null;
         amount: number;
+        status: import("@prisma/client").$Enums.PaymentStatus;
         paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
         qpayQrCode: string | null;
@@ -165,6 +163,8 @@ export declare class PaymentsController {
         userNotifiedAt: Date | null;
         invoiceCode: string;
         paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         reconcileAttempts: number;
         lastReconcileAt: Date | null;
         nextReconcileAt: Date | null;

@@ -54,27 +54,27 @@ export declare class AdminService {
         movieId?: string;
     }): Promise<{
         purchases: ({
-            user: {
-                id: string;
-                name: string;
-                email: string | null;
-            };
             payment: {
                 id: string;
                 amount: number;
                 paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
                 paidAt: Date | null;
             };
+            user: {
+                id: string;
+                name: string;
+                email: string | null;
+            };
             movie: {
                 id: string;
-                price: number | null;
                 title: string;
+                price: number | null;
             };
         } & {
             id: string;
             userId: string;
-            createdAt: Date;
             movieId: string;
+            createdAt: Date;
             paymentId: string;
         })[];
         total: number;

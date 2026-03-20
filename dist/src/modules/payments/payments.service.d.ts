@@ -26,8 +26,10 @@ export declare class PaymentsService {
     private createMoviePayment;
     private generateTransferReference;
     getPayment(paymentId: string): Promise<Payment>;
+    getAdminPaymentDetail(paymentId: string): Promise<Payment>;
     getPaymentByInvoiceCode(invoiceCode: string): Promise<Payment | null>;
     checkAndProcessPayment(paymentId: string): Promise<Payment>;
+    adminReconcilePayment(paymentId: string): Promise<Payment>;
     handleWebhook(invoiceCode: string, rawPayload?: any): Promise<ReconcileResult>;
     reconcilePaymentIdempotent(invoiceCode: string, qpayCheck: QPayPaymentCheckResponse, source: ReconcileSource, rawPayload?: any, retryCount?: number): Promise<ReconcileResult>;
     private executeReconciliation;
@@ -67,12 +69,10 @@ export declare class PaymentsService {
         } & {
             id: string;
             userId: string;
-            status: import("@prisma/client").$Enums.PaymentStatus;
-            createdAt: Date;
-            updatedAt: Date;
             subscriptionPlanId: string | null;
             movieId: string | null;
             amount: number;
+            status: import("@prisma/client").$Enums.PaymentStatus;
             paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
             qpayQrCode: string | null;
@@ -85,6 +85,8 @@ export declare class PaymentsService {
             userNotifiedAt: Date | null;
             invoiceCode: string;
             paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             reconcileAttempts: number;
             lastReconcileAt: Date | null;
             nextReconcileAt: Date | null;
