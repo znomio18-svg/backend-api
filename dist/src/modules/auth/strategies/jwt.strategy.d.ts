@@ -15,7 +15,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
         phoneNumber: string | null;
         avatar: string | null;
         password: string | null;
-        role: import("@prisma/client").$Enums.UserRole;
+        role: import(".prisma/client").$Enums.UserRole;
         isTestAccount: boolean;
     }>;
 }

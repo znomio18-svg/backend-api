@@ -101,4 +101,12 @@ export class UsersService {
 
     return { success: true };
   }
+
+  async deleteAccount(userId: string) {
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return { success: true };
+  }
 }

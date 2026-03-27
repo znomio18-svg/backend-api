@@ -20,28 +20,31 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 name: string;
+                nameEn: string | null;
                 description: string | null;
                 price: number;
-                nameEn: string | null;
                 durationDays: number;
                 isActive: boolean;
             };
         } & {
             id: string;
             userId: string;
-            status: import("@prisma/client").$Enums.SubscriptionStatus;
-            createdAt: Date;
-            updatedAt: Date;
+            planId: string;
             startDate: Date;
             endDate: Date;
-            planId: string;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             autoRenew: boolean;
+            createdAt: Date;
+            updatedAt: Date;
         }) | null;
     }>;
     registerPushToken(user: User, dto: RegisterPushTokenDto): Promise<{
         success: boolean;
     }>;
     unregisterPushToken(user: User, dto: UnregisterPushTokenDto): Promise<{
+        success: boolean;
+    }>;
+    deleteAccount(user: User): Promise<{
         success: boolean;
     }>;
 }

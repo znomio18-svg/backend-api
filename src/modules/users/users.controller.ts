@@ -59,4 +59,10 @@ export class UsersController {
   async unregisterPushToken(@CurrentUser() user: User, @Body() dto: UnregisterPushTokenDto) {
     return this.usersService.unregisterPushToken(user.id, dto.expoPushToken);
   }
+
+  @Delete('me')
+  @ApiOperation({ summary: 'Delete current user account and all associated data' })
+  async deleteAccount(@CurrentUser() user: User) {
+    return this.usersService.deleteAccount(user.id);
+  }
 }

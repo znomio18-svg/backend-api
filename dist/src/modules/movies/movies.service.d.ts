@@ -16,6 +16,7 @@ export interface CreateMovieDto {
     category?: MovieCategory;
 }
 export interface UpdateMovieDto extends Partial<CreateMovieDto> {
+    rating?: number;
 }
 export interface MovieListParams {
     page?: number;
@@ -38,8 +39,9 @@ export declare class MoviesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             description: string;
+            price: number | null;
+            title: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -49,8 +51,7 @@ export declare class MoviesService {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
-            price: number | null;
-            category: import("@prisma/client").$Enums.MovieCategory;
+            category: import(".prisma/client").$Enums.MovieCategory;
         }[];
         pagination: {
             page: number;

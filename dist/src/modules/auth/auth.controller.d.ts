@@ -36,7 +36,7 @@ export declare class AuthController {
         facebookId: string | null;
         phoneNumber: string | null;
         avatar: string | null;
-        role: import("@prisma/client").$Enums.UserRole;
+        role: import(".prisma/client").$Enums.UserRole;
         isTestAccount: boolean;
     }>;
     adminLogin(dto: AdminLoginDto): Promise<{

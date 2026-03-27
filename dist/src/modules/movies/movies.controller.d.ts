@@ -10,8 +10,9 @@ export declare class MoviesController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             description: string;
+            price: number | null;
+            title: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
             videoId: string;
@@ -21,8 +22,7 @@ export declare class MoviesController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
-            price: number | null;
-            category: import("@prisma/client").$Enums.MovieCategory;
+            category: import(".prisma/client").$Enums.MovieCategory;
         }[];
         pagination: {
             page: number;
@@ -37,8 +37,9 @@ export declare class MoviesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -48,15 +49,15 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
-        category: import("@prisma/client").$Enums.MovieCategory;
+        category: import(".prisma/client").$Enums.MovieCategory;
     }[]>;
     getPurchasedMovies(user: User): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -66,15 +67,15 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
-        category: import("@prisma/client").$Enums.MovieCategory;
+        category: import(".prisma/client").$Enums.MovieCategory;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -84,8 +85,7 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
-        category: import("@prisma/client").$Enums.MovieCategory;
+        category: import(".prisma/client").$Enums.MovieCategory;
     }>;
     getTrailerUrl(id: string): Promise<{
         streamUrl: string;
@@ -95,8 +95,9 @@ export declare class MoviesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         description: string;
+        price: number | null;
+        title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
         videoId: string;
@@ -106,8 +107,7 @@ export declare class MoviesController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
-        price: number | null;
-        category: import("@prisma/client").$Enums.MovieCategory;
+        category: import(".prisma/client").$Enums.MovieCategory;
     } & {
         streamUrl: string;
     }>;

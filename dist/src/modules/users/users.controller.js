@@ -66,6 +66,9 @@ let UsersController = class UsersController {
     async unregisterPushToken(user, dto) {
         return this.usersService.unregisterPushToken(user.id, dto.expoPushToken);
     }
+    async deleteAccount(user) {
+        return this.usersService.deleteAccount(user.id);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -94,6 +97,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, UnregisterPushTokenDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "unregisterPushToken", null);
+__decorate([
+    (0, common_1.Delete)('me'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete current user account and all associated data' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "deleteAccount", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('Users'),
     (0, common_1.Controller)('users'),

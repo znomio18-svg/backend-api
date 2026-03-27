@@ -90,6 +90,12 @@ let UsersService = class UsersService {
         });
         return { success: true };
     }
+    async deleteAccount(userId) {
+        await this.prisma.user.delete({
+            where: { id: userId },
+        });
+        return { success: true };
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

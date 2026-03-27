@@ -41,7 +41,7 @@ export declare class AdminService {
         };
         newUsers: number;
         paymentsByStatus: {
-            status: import("@prisma/client").$Enums.PaymentStatus;
+            status: import(".prisma/client").$Enums.PaymentStatus;
             count: number;
             amount: number;
         }[];
@@ -54,27 +54,27 @@ export declare class AdminService {
         movieId?: string;
     }): Promise<{
         purchases: ({
-            payment: {
-                id: string;
-                amount: number;
-                paymentMethod: import("@prisma/client").$Enums.PaymentMethod;
-                paidAt: Date | null;
-            };
             user: {
                 id: string;
                 name: string;
                 email: string | null;
             };
+            payment: {
+                id: string;
+                amount: number;
+                paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
+                paidAt: Date | null;
+            };
             movie: {
                 id: string;
-                title: string;
                 price: number | null;
+                title: string;
             };
         } & {
             id: string;
             userId: string;
-            movieId: string;
             createdAt: Date;
+            movieId: string;
             paymentId: string;
         })[];
         total: number;
