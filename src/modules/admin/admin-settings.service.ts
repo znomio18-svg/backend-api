@@ -7,7 +7,10 @@ export const SETTINGS_KEYS = {
   BANK_TRANSFER_INSTRUCTIONS: 'bank_transfer_instructions',
   SUPPORT_EMAIL: 'support_email',
   SUPPORT_PHONE: 'support_phone',
+  APP_ACCESS_MODE: 'app_access_mode',
 } as const;
+
+export type AppAccessMode = 'free' | 'purchase';
 
 @Injectable()
 export class AdminSettingsService {
@@ -67,6 +70,19 @@ export class AdminSettingsService {
       SETTINGS_KEYS.BANK_TRANSFER_INSTRUCTIONS,
       instructions,
       'Instructions shown to users for bank transfers',
+    );
+  }
+
+  async getAppAccessMode(): Promise<AppAccessMode> {
+    const value = await this.get(SETTINGS_KEYS.APP_ACCESS_MODE);
+    return value === 'free' ? 'free' : 'purchase';
+  }
+
+  async setAppAccessMode(mode: AppAccessMode): Promise<AdminSettings> {
+    return this.set(
+      SETTINGS_KEYS.APP_ACCESS_MODE,
+      mode,
+      'App access mode: free (all movies free) or purchase (subscription/purchase required)',
     );
   }
 }

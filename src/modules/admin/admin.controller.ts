@@ -30,6 +30,7 @@ import { AuthService } from '../auth/auth.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { UserRole, PaymentStatus, MovieCategory } from '@prisma/client';
 
 class SendNotificationDto {
@@ -412,5 +413,14 @@ export class AdminController {
   async getNotificationStats() {
     const deviceCount = await this.notificationsService.getDeviceCount();
     return { deviceCount };
+  }
+
+  // Public App Config
+  @Get('app-config')
+  @Public()
+  @ApiOperation({ summary: 'Get public app configuration (no auth required)' })
+  async getAppConfig() {
+    const accessMode = await this.adminSettingsService.getAppAccessMode();
+    return { accessMode };
   }
 }

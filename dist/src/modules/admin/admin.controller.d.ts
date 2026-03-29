@@ -63,7 +63,6 @@ export declare class AdminController {
             createdAt: Date;
             updatedAt: Date;
             description: string;
-            price: number | null;
             title: string;
             thumbnailUrl: string;
             trailerVideoId: string | null;
@@ -74,6 +73,7 @@ export declare class AdminController {
             viewCount: number;
             isFeatured: boolean;
             isPublished: boolean;
+            price: number | null;
             category: import(".prisma/client").$Enums.MovieCategory;
         }[];
         pagination: {
@@ -97,7 +97,6 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string;
-        price: number | null;
         title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
@@ -108,6 +107,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
         category: import(".prisma/client").$Enums.MovieCategory;
     }>;
     createMovie(dto: CreateMovieDto): Promise<{
@@ -115,7 +115,6 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string;
-        price: number | null;
         title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
@@ -126,6 +125,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
         category: import(".prisma/client").$Enums.MovieCategory;
     }>;
     updateMovie(id: string, dto: UpdateMovieDto): Promise<{
@@ -133,7 +133,6 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string;
-        price: number | null;
         title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
@@ -144,6 +143,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
         category: import(".prisma/client").$Enums.MovieCategory;
     }>;
     toggleFeatured(id: string, isFeatured: boolean): Promise<{
@@ -151,7 +151,6 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         description: string;
-        price: number | null;
         title: string;
         thumbnailUrl: string;
         trailerVideoId: string | null;
@@ -162,6 +161,7 @@ export declare class AdminController {
         viewCount: number;
         isFeatured: boolean;
         isPublished: boolean;
+        price: number | null;
         category: import(".prisma/client").$Enums.MovieCategory;
     }>;
     deleteMovie(id: string): Promise<{
@@ -191,13 +191,13 @@ export declare class AdminController {
                 name: string;
                 email: string | null;
             };
-            subscriptionPlan: {
-                id: string;
-                name: string;
-            } | null;
             movie: {
                 id: string;
                 title: string;
+            } | null;
+            subscriptionPlan: {
+                id: string;
+                name: string;
             } | null;
             bankAccount: {
                 id: string;
@@ -210,8 +210,8 @@ export declare class AdminController {
             status: import(".prisma/client").$Enums.PaymentStatus;
             createdAt: Date;
             updatedAt: Date;
-            subscriptionPlanId: string | null;
             movieId: string | null;
+            subscriptionPlanId: string | null;
             amount: number;
             paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
             qpayInvoiceId: string | null;
@@ -238,8 +238,8 @@ export declare class AdminController {
         status: import(".prisma/client").$Enums.PaymentStatus;
         createdAt: Date;
         updatedAt: Date;
-        subscriptionPlanId: string | null;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
@@ -264,8 +264,8 @@ export declare class AdminController {
         status: import(".prisma/client").$Enums.PaymentStatus;
         createdAt: Date;
         updatedAt: Date;
-        subscriptionPlanId: string | null;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
@@ -290,8 +290,8 @@ export declare class AdminController {
         status: import(".prisma/client").$Enums.PaymentStatus;
         createdAt: Date;
         updatedAt: Date;
-        subscriptionPlanId: string | null;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
@@ -316,8 +316,8 @@ export declare class AdminController {
         status: import(".prisma/client").$Enums.PaymentStatus;
         createdAt: Date;
         updatedAt: Date;
-        subscriptionPlanId: string | null;
         movieId: string | null;
+        subscriptionPlanId: string | null;
         amount: number;
         paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
         qpayInvoiceId: string | null;
@@ -391,9 +391,9 @@ export declare class AdminController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         key: string;
         value: string;
+        description: string | null;
     }[]>;
     getSetting(key: string): Promise<{
         key: string;
@@ -406,18 +406,18 @@ export declare class AdminController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         key: string;
         value: string;
+        description: string | null;
     }>;
     getSubscriptionPlans(includeInactive?: boolean): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }[]>;
@@ -426,9 +426,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -437,9 +437,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -448,9 +448,9 @@ export declare class AdminController {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        nameEn: string | null;
         description: string | null;
         price: number;
+        nameEn: string | null;
         durationDays: number;
         isActive: boolean;
     }>;
@@ -464,23 +464,23 @@ export declare class AdminController {
                 name: string;
                 email: string | null;
             };
+            movie: {
+                id: string;
+                title: string;
+                price: number | null;
+            };
             payment: {
                 id: string;
                 amount: number;
                 paymentMethod: import(".prisma/client").$Enums.PaymentMethod;
                 paidAt: Date | null;
             };
-            movie: {
-                id: string;
-                price: number | null;
-                title: string;
-            };
         } & {
             id: string;
             userId: string;
             createdAt: Date;
-            movieId: string;
             paymentId: string;
+            movieId: string;
         })[];
         total: number;
     }>;
@@ -500,6 +500,9 @@ export declare class AdminController {
     }>;
     getNotificationStats(): Promise<{
         deviceCount: number;
+    }>;
+    getAppConfig(): Promise<{
+        accessMode: import("./admin-settings.service").AppAccessMode;
     }>;
 }
 export {};
