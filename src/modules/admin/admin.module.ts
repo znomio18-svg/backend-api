@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { AdminController } from './admin.controller';
+import { AppConfigController } from './app-config.controller';
 import { AdminService } from './admin.service';
 import { BankAccountsService } from './bank-accounts.service';
 import { AdminSettingsService } from './admin-settings.service';
@@ -19,7 +20,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
     forwardRef(() => AuthModule),
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, AppConfigController],
   providers: [AdminService, BankAccountsService, AdminSettingsService],
   exports: [BankAccountsService, AdminSettingsService],
 })

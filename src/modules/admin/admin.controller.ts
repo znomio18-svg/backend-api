@@ -415,12 +415,4 @@ export class AdminController {
     return { deviceCount };
   }
 
-  // Public App Config
-  @Get('app-config')
-  @Public()
-  @ApiOperation({ summary: 'Get public app configuration (no auth required)' })
-  async getAppConfig() {
-    const accessMode = await this.adminSettingsService.getAppAccessMode();
-    return { accessMode };
-  }
 }
