@@ -1,13 +1,12 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { BunnyService } from './bunny.service';
-import { AdminModule } from '../admin/admin.module';
+import { AdminSettingsService } from '../admin/admin-settings.service';
 
 @Module({
-  imports: [forwardRef(() => AdminModule)],
   controllers: [MoviesController],
-  providers: [MoviesService, BunnyService],
+  providers: [MoviesService, BunnyService, AdminSettingsService],
   exports: [MoviesService, BunnyService],
 })
 export class MoviesModule {}
