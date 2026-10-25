@@ -47,6 +47,8 @@ import {
   GrantSubscriptionDto,
   SendToUsersDto,
 } from './admin-features.dto';
+import { SubtitlesService } from '../subtitles/subtitles.service';
+import { TranslateSubtitleDto, UploadSubtitleDto } from '../subtitles/subtitles.dto';
 
 type SourceFilter = 'chatbot' | 'site';
 function parseSource(source?: string): SourceFilter | undefined {
@@ -110,6 +112,7 @@ export class AdminController {
     private adminAuditService: AdminAuditService,
     private adminFeaturesService: AdminFeaturesService,
     private bankReconcileService: BankReconcileService,
+    private subtitlesService: SubtitlesService,
   ) {}
 
   // Dashboard
@@ -220,6 +223,62 @@ export class AdminController {
     @Body('isFeatured') isFeatured: boolean,
   ) {
     return this.moviesService.update(id, { isFeatured });
+  }
+
+  // Subtitles (Bunny Stream captions on the movie's main video)
+  @Get('movies/:id/subtitles')
+  @ApiOperation({ summary: 'List subtitle tracks of the movie video' })
+  async listSubtitles(@Param('id') id: string) {
+    return this.subtitlesService.list(id);
+  }
+
+  @Post('movies/:id/subtitles')
+  @Audit({
+    action: 'subtitle.upload',
+    entityType: 'movie',
+    logBody: false,
+    details: (req) => ({
+      srclang: req.body?.srclang,
+      label: req.body?.label,
+      bytes: typeof req.body?.content === 'string' ? Buffer.byteLength(req.body.content, 'utf8') : undefined,
+    }),
+  })
+  @ApiOperation({ summary: 'Add or replace a subtitle track (SRT/VTT text, converted to WebVTT)' })
+  async uploadSubtitle(@Param('id') id: string, @Body() dto: UploadSubtitleDto) {
+    return this.subtitlesService.upload(id, dto.srclang, dto.label.trim(), dto.content);
+  }
+
+  @Delete('movies/:id/subtitles/:srclang')
+  @Audit({ action: 'subtitle.delete', entityType: 'movie', details: (req) => ({ srclang: req.params?.srclang }) })
+  @ApiOperation({ summary: 'Delete a subtitle track' })
+  async deleteSubtitle(@Param('id') id: string, @Param('srclang') srclang: string) {
+    if (!/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,4})?$/.test(srclang)) {
+      throw new BadRequestException('Хэлний код буруу байна.');
+    }
+    return this.subtitlesService.remove(id, srclang);
+  }
+
+  @Post('subtitles/translate')
+  @Audit({
+    action: 'subtitle.translate',
+    entityType: 'subtitle_job',
+    logBody: false,
+    entityIdFrom: (_req, r) => r?.jobId,
+    details: (req) => ({
+      sourceLang: req.body?.sourceLang ?? 'auto',
+      targetLang: req.body?.targetLang,
+      bytes: typeof req.body?.content === 'string' ? Buffer.byteLength(req.body.content, 'utf8') : undefined,
+    }),
+  })
+  @ApiOperation({ summary: 'Start a background AI translation of a subtitle file to Mongolian' })
+  async translateSubtitle(@Req() req: any, @Body() dto: TranslateSubtitleDto) {
+    return this.subtitlesService.startTranslation(String(req.user.id), dto.content, dto.sourceLang, dto.targetLang);
+  }
+
+  @Get('subtitles/translate/:jobId')
+  @ApiOperation({ summary: 'Poll a subtitle translation job' })
+  async getTranslateJob(@Param('jobId') jobId: string) {
+    return this.subtitlesService.getJob(jobId);
   }
 
   @Delete('movies/:id')

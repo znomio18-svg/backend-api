@@ -14,6 +14,7 @@ import { UsersModule } from '../users/users.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { SubtitlesModule } from '../subtitles/subtitles.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     UsersModule,
     SubscriptionsModule,
     NotificationsModule,
+    SubtitlesModule,
     forwardRef(() => AuthModule),
   ],
   controllers: [AdminController, AppConfigController],

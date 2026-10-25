@@ -56,6 +56,14 @@ export class BunnyService {
   }
 
   generateSignedUrl(videoId: string, expiresInSeconds: number = 3600): string {
+    return this.generateSignedFileUrl(videoId, 'playlist.m3u8', expiresInSeconds);
+  }
+
+  /**
+   * Signed URL for any file under the video's directory (e.g. "captions/mn.vtt").
+   * Same directory token as the stream, so it is valid for all sub-resources.
+   */
+  generateSignedFileUrl(videoId: string, file: string, expiresInSeconds: number = 3600): string {
     const expires = Math.floor(Date.now() / 1000) + expiresInSeconds;
     // Sign the directory so token covers all sub-resources (quality playlists, .ts segments)
     const signaturePath = `/${videoId}/`;
@@ -77,7 +85,12 @@ export class BunnyService {
     // HLS sub-resources (quality playlists, .ts segments) automatically inherit auth
     // because the token prefix is preserved in relative URL resolution.
     const encodedTokenPath = encodeURIComponent(signaturePath);
-    return `https://${this.cdnHostname}/bcdn_token=${token}&token_path=${encodedTokenPath}&expires=${expires}/${videoId}/playlist.m3u8`;
+    return `https://${this.cdnHostname}/bcdn_token=${token}&token_path=${encodedTokenPath}&expires=${expires}/${videoId}/${file}`;
+  }
+
+  /** Movie (protected) Stream library id. */
+  getLibraryId(): string {
+    return this.libraryId;
   }
 
   getEmbedUrl(videoId: string): string {

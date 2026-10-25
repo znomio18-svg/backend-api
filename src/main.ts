@@ -24,6 +24,14 @@ async function bootstrap() {
   app.use('/api/admin/bank-reconcile/preview', function bankStatementBody(req: any, res: any, next: any) {
     bankStatementJson(req, res, next);
   });
+  // Subtitle upload / AI-translate routes carry SRT/VTT text up to 5MB.
+  const subtitleJson = json({ limit: '8mb' });
+  const subtitleBody = function subtitleBody(req: any, res: any, next: any) {
+    if (req.method !== 'POST') return next();
+    subtitleJson(req, res, next);
+  };
+  app.use('/api/admin/movies/:id/subtitles', subtitleBody);
+  app.use('/api/admin/subtitles/translate', subtitleBody);
   app.setGlobalPrefix('api');
 
   app.enableCors({

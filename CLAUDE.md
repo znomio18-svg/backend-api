@@ -86,3 +86,9 @@ Prisma with PostgreSQL. Schema at `prisma/schema.prisma`. Key models: `User` (fa
 - `FRONTEND_URL` — Frontend URL for OAuth redirect and CORS
 - `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE`, `QPAY_CALLBACK_URL` — QPay integration
 - `BUNNY_LIBRARY_ID`, `BUNNY_API_KEY`, `BUNNY_CDN_HOSTNAME` — Bunny CDN video
+
+## Environment Variables (Optional — subtitles)
+
+- `BUNNY_STREAM_API_KEY` — Bunny Stream **library API key** (Stream → library → API; not the CDN token key in `BUNNY_API_KEY`). Needed for admin subtitle routes (`/api/admin/movies/:id/subtitles`); 503 when missing.
+- `ANTHROPIC_API_KEY` — enables AI subtitle translation (`/api/admin/subtitles/translate`); 503 when missing.
+- `SUBTITLE_TRANSLATE_MODEL` — Claude model for translation (default `claude-sonnet-5-5`).
