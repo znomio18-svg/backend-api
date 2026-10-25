@@ -70,6 +70,7 @@ model User {
   subscriptions   Subscription[]
   moviePurchases  MoviePurchase[]
   pushDevices     PushDevice[]
+  externalIdentities ExternalIdentity[]
 
   @@map("users")
 }
@@ -255,9 +256,66 @@ model MoviePurchase {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie   Movie   @relation(fields: [movieId], references: [id])
   payment Payment @relation(fields: [paymentId], references: [id])
+  watchTokens WatchToken[]
 
   @@unique([userId, movieId])
   @@index([userId])
   @@index([movieId])
   @@map("movie_purchases")
+}
+
+/// A chatbot identity (Messenger PSID or website chat visitor) behind a user
+/// that was created for it. Lets the chatbot sell to people who never logged in.
+model ExternalIdentity {
+  id         String   @id @default(cuid())
+  provider   String // "messenger" | "web"
+  externalId String // "<pageId>:<psid>" for messenger
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalId])
+  @@index([userId])
+  @@map("external_identities")
+}
+
+/// A secret watch link for one movie purchase ("/watch/wt_..."). Only the
+/// SHA-256 of the token is stored; access is re-checked on every use.
+model WatchToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  purchaseId String
+  source     String? // Who minted it, e.g. "messenger"
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+  useCount   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  purchase MoviePurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@map("watch_tokens")
+}
+
+/// One mutating admin action (who did what, to which record). Written by the
+/// admin audit interceptor after the action succeeds; never blocks a request.
+/// No FK to users on purpose: entries survive the admin account.
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  adminName  String?
+  action     String // e.g. "payment.confirm"
+  entityType String? // e.g. "payment"
+  entityId   String?
+  details    Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([adminId])
+  @@index([action])
+  @@map("admin_audit_logs")
 }

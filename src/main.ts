@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import { json } from 'express';
 import { AppModule } from './app.module';
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
@@ -13,6 +14,16 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   app.use(cookieParser());
+
+  // Bank statement upload (base64 xlsx/csv up to 10MB) needs a bigger JSON
+  // limit than Nest's default 100kb — for this one route only. Registered
+  // before Nest's global parser, which then skips the already-parsed body.
+  // Wrapped in a named function: Nest skips its own parser if it finds a
+  // middleware literally named "jsonParser" in the stack.
+  const bankStatementJson = json({ limit: '15mb' });
+  app.use('/api/admin/bank-reconcile/preview', function bankStatementBody(req: any, res: any, next: any) {
+    bankStatementJson(req, res, next);
+  });
   app.setGlobalPrefix('api');
 
   app.enableCors({

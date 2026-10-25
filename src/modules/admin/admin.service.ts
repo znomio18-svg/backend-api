@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { PaymentStatus, SubscriptionStatus } from '@prisma/client';
+import { NOT_GRANT } from './admin-features.service';
 
 export interface DateRangeFilter {
   startDate?: Date;
@@ -47,13 +48,15 @@ export class AdminService {
         },
         _sum: { amount: true },
       }),
+      // Admin grants (GRANT-…, amount 0) are not sales: left out of counts
       this.prisma.payment.count({
-        where: { status: PaymentStatus.PAID },
+        where: { status: PaymentStatus.PAID, ...NOT_GRANT },
       }),
       this.prisma.payment.count({
         where: {
           status: PaymentStatus.PAID,
           paidAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          ...NOT_GRANT,
         },
       }),
       this.prisma.subscription.count({
@@ -62,7 +65,7 @@ export class AdminService {
           endDate: { gt: new Date() },
         },
       }),
-      this.prisma.moviePurchase.count(),
+      this.prisma.moviePurchase.count({ where: { payment: NOT_GRANT } }),
       this.prisma.payment.aggregate({
         where: {
           status: PaymentStatus.PAID,
@@ -93,6 +96,7 @@ export class AdminService {
       where: {
         status: PaymentStatus.PAID,
         ...dateFilter,
+        ...NOT_GRANT,
       },
       select: {
         amount: true,
@@ -189,7 +193,7 @@ export class AdminService {
 
     const result = await this.prisma.payment.groupBy({
       by: ['status'],
-      where: dateFilter,
+      where: { ...dateFilter, ...NOT_GRANT },
       _count: { id: true },
       _sum: { amount: true },
     });
@@ -222,7 +226,7 @@ export class AdminService {
         include: {
           user: { select: { id: true, name: true, email: true } },
           movie: { select: { id: true, title: true, price: true } },
-          payment: { select: { id: true, amount: true, paymentMethod: true, paidAt: true } },
+          payment: { select: { id: true, amount: true, paymentMethod: true, paidAt: true, invoiceCode: true } },
         },
       }),
       this.prisma.moviePurchase.count({ where }),

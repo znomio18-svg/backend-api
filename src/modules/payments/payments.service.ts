@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../config/prisma.service';
 import { EmailService } from '../../config/email.service';
 import { QpayService, QPayPaymentCheckResponse } from './qpay.service';
+import { ChatbotNotifierService } from './chatbot-notifier.service';
 import {
   Payment,
   PaymentStatus,
@@ -44,6 +45,7 @@ export class PaymentsService {
     private qpayService: QpayService,
     private configService: ConfigService,
     private emailService: EmailService,
+    private chatbotNotifier: ChatbotNotifierService,
   ) {}
 
   async createPayment(
@@ -456,7 +458,10 @@ export class PaymentsService {
     const MAX_RETRIES = 3;
 
     try {
-      return await this.executeReconciliation(invoiceCode, qpayCheck, source, rawPayload);
+      const result = await this.executeReconciliation(invoiceCode, qpayCheck, source, rawPayload);
+      // After commit, so the chatbot reads the payment as PAID
+      if (result.action === 'created') void this.chatbotNotifier.paymentPaid(result.payment);
+      return result;
     } catch (error) {
       if (this.isRetryableError(error) && retryCount < MAX_RETRIES) {
         const backoffMs = 50 * Math.pow(2, retryCount) + Math.random() * 50;
@@ -697,8 +702,58 @@ export class PaymentsService {
     status?: PaymentStatus;
     paymentMethod?: PaymentMethod;
     search?: string;
+    source?: 'chatbot' | 'site';
   }) {
-    const { skip = 0, take = 20, startDate, endDate, status, paymentMethod, search } = params;
+    const { skip = 0, take = 20 } = params;
+    const where = this.buildPaymentLogWhere(params);
+
+    const [payments, total] = await Promise.all([
+      this.prisma.payment.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              externalIdentities: { select: { id: true }, take: 1 },
+            },
+          },
+          subscriptionPlan: { select: { id: true, name: true } },
+          movie: { select: { id: true, title: true } },
+          bankAccount: { select: { id: true, bankName: true, accountNumber: true } },
+        },
+      }),
+      this.prisma.payment.count({ where }),
+    ]);
+
+    // Additive: `source` = 'chatbot' when the payer is a chatbot-created user
+    return {
+      payments: payments.map(({ user, ...payment }) => {
+        const { externalIdentities, ...userFields } = user;
+        return {
+          ...payment,
+          user: userFields,
+          source: (externalIdentities.length > 0 ? 'chatbot' : 'site') as 'chatbot' | 'site',
+        };
+      }),
+      total,
+    };
+  }
+
+  /** Shared by the admin payment list and the CSV export. */
+  buildPaymentLogWhere(params: {
+    startDate?: Date;
+    endDate?: Date;
+    status?: PaymentStatus;
+    paymentMethod?: PaymentMethod;
+    search?: string;
+    source?: 'chatbot' | 'site';
+  }): Prisma.PaymentWhereInput {
+    const { startDate, endDate, status, paymentMethod, search, source } = params;
 
     const where: any = {};
 
@@ -724,23 +779,13 @@ export class PaymentsService {
       ];
     }
 
-    const [payments, total] = await Promise.all([
-      this.prisma.payment.findMany({
-        where,
-        skip,
-        take,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: { select: { id: true, name: true, email: true } },
-          subscriptionPlan: { select: { id: true, name: true } },
-          movie: { select: { id: true, title: true } },
-          bankAccount: { select: { id: true, bankName: true, accountNumber: true } },
-        },
-      }),
-      this.prisma.payment.count({ where }),
-    ]);
+    if (source === 'chatbot') {
+      where.user = { externalIdentities: { some: {} } };
+    } else if (source === 'site') {
+      where.user = { externalIdentities: { none: {} } };
+    }
 
-    return { payments, total };
+    return where;
   }
 
   // ============ Bank Transfer Methods ============
@@ -807,7 +852,7 @@ export class PaymentsService {
       throw new BadRequestException('Payment is not pending');
     }
 
-    return await this.prisma.$transaction(async (tx) => {
+    const confirmed = await this.prisma.$transaction(async (tx) => {
       const updatedPayment = await tx.payment.update({
         where: { id: paymentId },
         data: {
@@ -828,6 +873,8 @@ export class PaymentsService {
 
       return updatedPayment;
     });
+    void this.chatbotNotifier.paymentPaid(confirmed);
+    return confirmed;
   }
 
   async rejectBankTransferPayment(

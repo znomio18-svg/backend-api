@@ -31,6 +31,32 @@ export class NotificationsService {
     return this.sendToTokens(tokens, dto);
   }
 
+  /**
+   * Push to the devices of specific users. `targetedUsers` = how many of the
+   * given users have at least one valid push device.
+   */
+  async sendToUsers(
+    userIds: string[],
+    dto: SendNotificationDto,
+  ): Promise<{ sent: number; failed: number; targetedUsers: number }> {
+    const devices = await this.prisma.pushDevice.findMany({
+      where: { userId: { in: [...new Set(userIds)] } },
+      select: { expoPushToken: true, userId: true },
+    });
+
+    const valid = devices.filter((d) => Expo.isExpoPushToken(d.expoPushToken));
+    const targetedUsers = new Set(valid.map((d) => d.userId)).size;
+    if (valid.length === 0) {
+      return { sent: 0, failed: 0, targetedUsers: 0 };
+    }
+
+    const result = await this.sendToTokens(
+      valid.map((d) => d.expoPushToken),
+      dto,
+    );
+    return { ...result, targetedUsers };
+  }
+
   async getDeviceCount(): Promise<number> {
     return this.prisma.pushDevice.count();
   }
